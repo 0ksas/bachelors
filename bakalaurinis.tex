@@ -19,15 +19,15 @@
 % Titulinio aprašas
 \university{Vilniaus universitetas}
 \faculty{Matematikos ir informatikos fakultetas}
-\institute{Informatikos institutas}  % Užkomentavus šią eilutę - institutas neįtraukiamas į titulinį
-\department{Programų sistemų bakalauro studijų programa}
-\papertype{Bakalauro baigiamasis darbas}
-\title{Programų sistemų kūrimo metodų tyrimas}
-\titleineng{Investigation of Methods of Software Development}
-\author{Vardenis Pavardenis}
-% \secondauthor{Vardonis Pavardonis}   % Pridėti antrą autorių
-\supervisor{prof. habil. dr. Vardaitis Pavardaitis}
-\reviewer{doc. dr. Vardauskas Pavardauskas}
+\institute{Informatikos institutas}  
+\department{Programų sistemų studijų programa}
+\papertype{Bakalauro baigiamojo darbo planas}
+\title{Vaizdo žaidimo eismo vaizdų generavimas naudojant nesuporuotų vaizdų transformacijas}
+\titleineng{Video game traffic image generation using unpaired image to image translation}
+\status{4 kurso 5 grupės studentas}
+\author{Gytis Oksas}
+\supervisor{j. asist. Boleslovas Dapkūnas}
+\reviewer{doc. dr. Linas Petkevičius}
 \addsignatureplaces{} % prideda parašų vietas tituliniame puslapyje
 \date{Vilnius – \the\year}
 
@@ -36,130 +36,44 @@
 \begin{document}
 \maketitle
 
-%% Padėkų skyrius
-% \sectionnonumnocontent{}
-% \vspace{7cm}
-% \begin{center}
-%     Padėkos asmenims ir/ar organizacijoms
-% \end{center}
+\sectionnonumnocontent{Įvadas}
+    Vaizdų transformacija (angl. \emph{image-to-image  translation}) yra plačiai taikoma metodika kompiuterių regos ir paveikslų apdorojimo problemoms spręsti \cite{ImTImTr}. Metodai, sprendžiantys šias problemas, gali būti taikomi parinktų specifinių paveikslėlių požymių keitimui, trūkstamų paveikslėlio pikselių užpildymui arba realistinių vaizdų generavimui. Ši taikymo sritis gali būti naudinga kuriant žaidimų meninį turinį (pavyzdžiui, tekstūras, realistinių objektų dizaino atitikmenis žaidimui), kuriant animacijas. Ir nors realių vaizdų transformavimas į nerealistinių vaizdų domeną nėra naujas (pavyzdžiui, veido nuotraukas transformuoti į animacinių filmukų stilių, kaip yra taikoma MSPC modelio pavyzdžiuose \cite{Mspc}), jis vis dar yra aktyviai analizuojamas, kadangi yra likusių ir pastoviai iškylančių problemų ir iššūkių (pavyzdžiui, vaizde daug triukšmo, besikartojantys artefaktai, nelogiški piešiniai). Vaizdo žaidimų vaizdų transformavimas į realistinius vaizdus yra spręstas, tačiau atvirkštinis variantas yra gan mažai išnagrinėtas.
 
-\sectionnonumnocontent{Santrauka}
-Glaustai aprašomas darbo turinys: pristatoma nagrinėta problema ir padarytos
-išvados. Santraukos apimtis ne didesnė nei 0,5 puslapio. Santraukų gale
-nurodomi darbo raktiniai žodžiai. 
-% Nurodomi iki 5 svarbiausių temos raktinių žodžių (terminų).
-% Vienas terminas gali susidėti iš kelių žodžių.
-\raktiniaizodziai{raktinis žodis 1, raktinis žodis 2, raktinis žodis 3, raktinis žodis 4, raktinis žodis 5}   
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.3]{img/EnPhEn_before}
+        \includegraphics[scale=0.3]{img/EnPhEn_after}
+        \caption{Vaizdai prieš ir po nuotraukos transformavimo, atitinkamai.\cite{EnPhEn}}
+        \label{img:mlp}
+    \end{figure}
+    
+    Tyrimas kuris atkreipė daug dirbtinio intelekto ir vaizdo žaidimų mėgėjų dėmesį yra aprašytas Intel dirbtinio intelekto mokslininkų straipsnyje „Enhancing Photorealism Enhancement“ \cite{EnPhEn}, jame pristatomas metodas, kaip išnaudojus modernias dirbtinio intelekto technologijas yra sukuriamas nuotraukų transformatoriaus modelis, sugebantis žaidimo GTA V automobilių eismo vaizdus paversti foto realistiniais, lyg įrašytais automobilio registratoriumi. Jis vienas pirmųjų įtikinamai, švariai, be prarastų esminių nuotraukų detalių ir be pridėtinių artefaktų sugebėjo transformuoti nuotrauką į realistiškai atrodantį vaizdą (žr. 1 pav.). Tai davė idėją šiam tyrimui – apsukti puses ir sukurti modelį, kuris pagal tuos pačius atributus sugebėtų transformuoti realybės automobilių eismo vaizdus į vaizdo žaidimo automobilių eismo vaizdus.
 
-\sectionnonumnocontent{Summary}
-Santrauka anglų kalba. Santraukos apimtis ne didesnė nei 0,5 puslapio.
-\keywords{keyword 1, keyword 2, keyword 3, keyword 4, keyword 5}
+    \subsubsection*{Tyrimo metodai ir laukiami rezultatai}
+        Kursiniame darbe buvo panaudoti, jau tapę tradiciniais, generatyviniai adversariniai tinklai \cite{OrigGan} (angl. \emph{generative adversarial network}), kurie turėjo savo trūkumų su turinio dingimu po nuotraukos transformacijos (daugiausiai iš nuotraukų buvo ištrinti automobiliai), todėl svarbi tyrimo dalis bus sukurti metodą, leidžiantį atskirti bendrą turinį ir dingstančias klases iš vaizdo (naudojant segmentacinius modelius) ir taip atskirai transformuoti bendrą vaizdą ir dingstantį turinį (t.y. automobilius), ir šiuos vaizdus algoritmiškai sujungti. Šio metodo norimas rezultatas yra kokybiškas foninių detalių transformavimas su išsaugomais automobiliais nuotraukose, t.y. kelių modelių programa, kuri sugeba išsaugoti daugiau detalių nei pavienis MSPC modelis \cite{Mspc} (apmokytas kursinio darbo metu) be papildomos logikos ar skaičiavimų.
+    
+        Pastaraisiais metais taip pat pradėjo populiarėti difuziniai nuotraukų generavimo modeliai \cite{DiffMod}. Jie sugeba kurti nuotraukas su kur kas mažiau triukšmo ir įtikinamesniu turiniu, tačiau šių modelių mokymas ir naudojimas trunka kur kas ilgiau. Dėl šių priežasčių, dalis darbo gali būti skiriama bandymams, ar šie nauji modeliai gali būti pritaikyti ir gali būti naudingesni nei įprasti GAN modeliai, šios užduoties scenarijuje. Norimas rezultatas iš šio eksperimento būtų kokybiškiau arba švariau (mažiau artefaktų, nuotraukos triukšmo) transformuotas vaizdas.
 
-\tableofcontents
+    \subsubsection*{Darbo atlikimo procesas}
+        \begin{enumerate}
+            \item Sukurti vaizdo žaidimo automobilių duomenų rinkinį.
+            \item Apmokyti MSPC modelį transformuoti tik automobilių nuotraukas
+            \item Kursiniame darbe apmokytą bendrą MSPC modelį ir MSPC automobilių nuotraukų transformavimo modelį apjungti programoje, kuri naudojanti segmentacinį modelį atskirtų automobilius iš nuotraukos, transformuotų abi nuotraukas ir įklijuotų transformuotą automobilio nuotrauką atgal į bendrą nuotrauką. 
+            \item Rasti ar yra difuzijos modelių sugebančių transformuoti nuotraukas tarp dviejų domenų naudojant nesuporuotų nuotraukų transformaciją, jei rasti pavyktų, apmokyti difuzinį modelį su turimu duomenų rinkiniu.  
+            \item Palyginti ar naujų modelių rezultatai yra geresni negu kursiniame darbe gauto modelio (atsižvelgiant į naujesnių metodų kompleksiškumą ir didesnes sąnaudas).
+        \end{enumerate}
 
-\sectionnonum{Įvadas}
-Įvade nurodomas darbo tikslas ir uždaviniai, kuriais bus įgyvendinamas tikslas,
-aprašomas temos aktualumas, apibrėžiamas tiriamasis objektas akcentuojant
-neapibrėžtumą, kuris bus išspręstas darbe, aptariamos teorinės darbo prielaidos
-bei metodika, apibūdinami su tema susiję literatūros ar kitokie šaltiniai,
-temos analizės tvarka, darbo atlikimo aplinkybės, pateikiama žinių apie
-naudojamus instrumentus (programas ir kt., jei darbe yra eksperimentinė dalis).
-Darbo įvadas neturi būti dėstymo santrauka. Įvado apimtis 2--4 puslapiai.
+    \subsubsection*{Darbo tikslas}
+        Šio tyrimo tikslas ir yra sukurti metodą, gebantį transformuoti realias eismo nuotraukas į vaizdo žaidimo vaizdus, tačiau neprarandant esminių semantinių objektų (šiuo atveju - automobilių). Pasirinkta buvo transformuoti nuotraukas į  žaidimo „Grand Theft Auto: Vice City“ (toliau trumpinama „GTA:VC“) domeną dėl jo išskirtinio meninio stiliaus ir ryškaus domeno požymių skirtumo lyginant su realaus eismo nuotraukomis. Tyrimo uždaviniai:
+        \begin{enumerate}
+            \item Sukurti vaizdo žaidimo duomenų rinkinį.
+            \item Sukurti vaizdo žaidimo automobilių duomenų rinkinį.
+            \item Sukurti metodą sugebantį atskirai transformuoti tam tikrą nuotraukos semantinę klasę ir gautą rezultatą atgal įklijuoti į nuotrauką. 
+            \item Palyginti modelius.
+        \end{enumerate}
 
-\section{Medžiagos darbo tema dėstymo skyriai}
-Medžiagos darbo tema dėstymo skyriuose išsamiai pateikiamos nagrinėjamos temos
-detalės: pradiniai duomenys, jų analizės ir apdorojimo metodai, sprendimų
-įgyvendinimas, gautų rezultatų apibendrinimas.
+        \nocite{*}
 
-Medžiaga turi būti dėstoma aiškiai, pateikiant argumentus. Tekste dėstomas
-trečiuoju asmeniu, t.y. rašoma ne \enquote{aš manau}, bet „autorius mano“, „autoriaus
-nuomone“. Reikėtų vengti informacijos nesuteikiančių frazių, pvz., „...kaip jau
-buvo minėta...“, „...kaip visiems žinoma...“ ir pan., vengti grožinės
-literatūros ar publicistinio stiliaus, gausių metaforų ar panašių meninės
-išraiškos priemonių.
-
-Skyriai gali turėti poskyrius ir smulkesnes sudėtines dalis, kaip punktus ir
-papunkčius.
-
-\subsection{Poskyris}
-Citavimo pavyzdžiai: cituojamas vienas šaltinis \cite{PvzStraipsnLt}; cituojami
-keli šaltiniai \cite{PvzStraipsnEn, PvzKonfLt, PvzKonfEn, PvzKnygLt, PvzKnygEn,
-PvzElPubLt, PvzElPubEn, PvzMagistrLt, PvzPhdEn}.
-
-\subsection{Faktorialo algoritmas}
-
-\ref{alg:factorial} pav. pateiktas faktorialo algoritmas.
-
-\begin{algorithm}
-\begin{algorithmic}[1] % [1] padaro, kad eilutės būtų sunumeruotos
-\State $N\gets$ skaičius, kurio faktorialą skaičiuojame
-\State $F\gets 1$
-\For{$i := 2$ $to$ $N$}
-    \State $F\gets F \cdot i$
-\EndFor
-\end{algorithmic}
-\caption{Faktorialo algoritmas}
-\label{alg:factorial}
-\end{algorithm}
-
-\subsubsection{Punktas}
-\subsubsubsection{Papunktis}
-\subsubsection{Punktas}
-\section{Skyrius}
-\subsection{Poskyris}
-\subsection{Poskyris}
-
-\sectionnonum{Rezultatai ir išvados}
-Rezultatų ir išvadų dalyje išdėstomi pagrindiniai darbo rezultatai (kažkas
-išanalizuota, kažkas sukurta, kažkas įdiegta), toliau pateikiamos išvados
-(daromi nagrinėtų problemų sprendimo metodų palyginimai, siūlomos
-rekomendacijos, akcentuojamos naujovės). Rezultatai ir išvados pateikiami
-sunumeruotų (gali būti hierarchiniai) sąrašų pavidalu. Darbo rezultatai turi
-atitikti darbo tikslą.
-
-\printbibliography[heading=bibintoc]  % Šaltinių sąraše nurodoma panaudota
-% literatūra, kitokie šaltiniai. Abėcėlės tvarka išdėstomi darbe panaudotų
-% (cituotų, perfrazuotų ar bent paminėtų) mokslo leidinių, kitokių publikacijų
-% bibliografiniai aprašai. Šaltinių sąrašas spausdinamas iš naujo puslapio.
-% Aprašai pateikiami netransliteruoti. Šaltinių sąraše negali būti tokių
-% šaltinių, kurie nebuvo paminėti tekste (LaTeX tai sutvarko automatiškai).
-% Šaltinių sąraše rekomenduojame necituoti savo kursinio darbo, nes tai nėra
-% oficialus literatūros šaltinis. Jei tokių nuorodų reikia, pateikti jas tekste.
-
-% \sectionnonum{Sąvokų apibrėžimai}
-\sectionnonum{Santrumpos}
-Sąvokų apibrėžimai ir santrumpų sąrašas sudaromas tada, kai darbo tekste
-vartojami specialūs paaiškinimo reikalaujantys terminai ir rečiau sutinkamos
-santrumpos.
-
-\appendix  % Priedai
-% Prieduose gali būti pateikiama pagalbinė, ypač darbo autoriaus savarankiškai
-% parengta, medžiaga. Savarankiški priedai gali būti pateikiami ir
-% kompaktiniame diske. Priedai taip pat numeruojami ir vadinami. Darbo tekstas
-% su priedais susiejamas nuorodomis.
-
-\section{Neuroninio tinklo struktūra}
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.5]{img/MLP}
-    \caption{Paveikslėlio pavyzdys}
-    \label{img:mlp}
-\end{figure}
-
-
-\section{Eksperimentinio palyginimo rezultatai}
-% tablesgenerator.com - converts calculators (e.g. excel) tables to LaTeX
-\begin{table}[H]\footnotesize
-  \centering
-  \caption{Lentelės pavyzdys}
-  {\begin{tabular}{|l|c|c|} \hline
-    Algoritmas & $\bar{x}$ & $\sigma^{2}$ \\
-    \hline
-    Algoritmas A  & 1.6335    & 0.5584       \\
-    Algoritmas B  & 1.7395    & 0.5647       \\
-    \hline
-  \end{tabular}}
-  \label{tab:table example}
-\end{table}
+\printbibliography[heading=bibintoc]
 
 \end{document}

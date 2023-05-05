@@ -1,26 +1,8 @@
-%% VUMIFPSbakalaurinis.cls – „Tik svajotojai-romantikai gali pagerinti nepakeičiamą pasaulį“
-%% Created by   „Atviras Kodas Lietuvai“  2015
-%
-%% Latest version available here: https://github.com/LIKS/bachelor_thesis_template_vu_mif_se
-%% Any suggestions or contributions are welcome!  Also see: https://latex.liks.lt!
-%
-%% License CC BY 4.0 (see more at http://creativecommons.org/licenses/by/4.0/)
-% You are free to (a) share - copy and redistribute the material in any medium
-% or format (b) adapt - remix, transform, and build upon the material for any
-% purpose, even commercially. As long as you give appropriate credit, provide a
-% link to the license, and indicate if changes were made.
-
-
-% Bakalauro baigiamojo darbo apiforminimas pagal Vilniaus universiteto
-% Matematikos ir informatikos fakulteto Programų sistemų katedros reikalavimus
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{VUMIFPSbakalaurinis}[2023/01/30 1.4 VU MIF SE bachelor thesis class]
 \LoadClass[12pt, a4paper]{article}
 \RequirePackage{LTPlius}  % Nustatymų sulietuvinimas
 \RequirePackage{fontspec} % Šrifto pasirinkimui
-% Teksto šriftas bus Palemonas.
-% Naujos Palemono versijos talpinamos
-% https://vlkk.lt/palemonas
 \setmainfont[
     Path=fonts/Palemonas3.2.05/,
     Ligatures=TeX,

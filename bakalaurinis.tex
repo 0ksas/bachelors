@@ -124,7 +124,7 @@
             \begin{figure}[H]
                 \centering
                 \includegraphics[scale=0.4287]{img/diffusion/controlnet/mask}
-                \caption{2 pav. transformuojamos nuotraukos segmentacijos kaukės.}
+                \caption{Transformuojamos nuotraukos segmentacijos kaukės.}
                 \label{img:mlp}
             \end{figure}
 
@@ -176,35 +176,76 @@
             Vaizdo įrašai apdoroti Python kalbos skriptu, konvertuojančiu vaizdo įrašą į atskiras kadrų nuotraukas, taip sudarydamas GTA:VC vaizdų duomenų rinkinį sudarytą iš 2000 nuotraukų, o jo antrą versiją iš 2300.
         
         \subsubsection{Automobilių duomenų rinkinys}
-            Apmokius pirminius modelius, buvo pastebėta jog dingsta automobiliai. Šiai problemai
+            Apmokius pirminius modelius, buvo pastebėta, kad dingsta automobiliai ir nors vaizdo žaidimo duomenų rinkinys buvo papildytas nuotraukomis, kuriose yra automobilių, rezultatai vis dar buvo prasti. Dėl šios priežasties buvo nuspręsta kurti atskirą modelį, transformuojantį tik nuotraukas, kuriose yra automobiliai, t.y. viskas kas nėra automobilis - lieka paverčiama permatoma. Tam pasirinktas \emph{png} nuotraukų formatas, kuris sudarytas iš 4 kanalų - raudona, žalia, mėlyna ir permatomumo (dar vadinama \emph{alpha} kanalu).
+
+            Šio duomenų rinkinio generavimui buvo pasitelkti atsisiųstas BDD100K ir surinktas GTA:VC duomenų rinkiniai bei nuotraukų segmentavimo modelis. Buvo pasirinktas DeepLabV3 segmentacijos modelis su ResNet-101 pagrindu, prieinamas Pytorch segmentacijos modelių bibliotekoje. Pagal numatytus nustatymus, šis modelis atsisiunčiamas jau apmokytas naudojant Coco 2017 duomenų rinkinį.
+
+            Duomenų rinkinys buvo generuojamas skaitant kiekvieną nuotrauką ir ją praleidžiant pro segmentavimo modelį. Iš visų klasių, paimami buvo tik automobilių klasės segmentacijos rezultatai, kurie nurodė kiekvienam pikseliui tikimybę, jog jame yra atvaizduojamas automobilis. Tam, kad pikselis būtų pilnos reikšmės, arba jis būtų visiškai permatomas, reikėjo suapvalinti kiekvieno pikselio tikimybę į 1 arba 0. 0,5 reikšmė gavosi per maža ir automobilių nuotraukose gavosi dideli tarpai tuštumos, dėl to pasirinkta buvo 0,25 reikšmė, kuri suteikia pilnesnį automobilių vaizdą (žr. 5 pav.). Gauta kaukė yra panaudojama kaip \emph{alpha} kanalo reikšmė nuotraukai, taip paverčiant pikselius, kuriuose spėjama, jog nėra automobilio, permatomais.
+
+            Tas pats procesas buvo pritaikytas ir žaidimo vaizdams maskuoti. Šis modelis apmokytas realiomis nuotraukomis gan gerai įveikė užduotį ir gavosi patenkinamos kokybės nuotraukos (žr. 5 pav.). Daug nuotraukų gavosi tuščios, t.y. be automobilių ir dėl to tapo juodos, arba labai prastos kokybės su iškirptomis automobilių dalimis arba nereikalingais artefaktais, dėl šių priežasčių daug nuotraukų teko ištrinti ir duomenų rinkinys sumažėjo nuo 6893 iki 2474 nuotraukų realiam domenui ir nuo 2279 iki 410 nuotraukų žaidimo domenui.
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.65]{img/segmentation/real_pvz}
+                \caption{Automobilių duomenų rinkinio realaus domeno nuotraukos pavyzdys.}
+                \label{img:mlp}
+            \end{figure}
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.75]{img/segmentation/vc_pvz}
+                \caption{Automobilių duomenų rinkinio GTA:VC domeno nuotraukos pavyzdys.}
+                \label{img:mlp}
+            \end{figure}
             
     \subsection{Mokymo platformos}
         Paruošus modelius, jie buvo mokomi VU MIF superkompiuteriu. Mokoma buvo naudojant Linux Ubuntu operacinę sistemą (20.04 versiją) su PyTorch karkasu, pasitelkiant superkompiuterio Nvidia DGX-1 stotį, kurią sudaro keturios Nvidia Tesla V100 vaizdo plokštės.
-    \subsection{Mokymo procesas} 
-        Mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo.
+    \subsection{Mokymo procesas}
+        \subsubsection{Pirminių modelių mokymas}
+            Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
+    
+            Kiekvienas modelis buvo mokomas 100 epochų su vientisu mokymo greičiu (0.0002) ir 35 epochomis tiesišku mokymosi greičio nykimu (angl. \emph{decay}).  Kiekvienas modelis buvo apmokytas du kartus, vieną kartą su pirmąja GTA:VC eismo vaizdų duomenų rinkiniu, o antrą kartą su antrąja jo versija, todėl iš viso yra kiekvieno modelio dvi versijos vadinamos V1 ir V2, pavyzdžiui, CUT V1 ir CUT V2. Mokymosi greitis yra apskaičiuojama pagal šią formulę:
+            \[ lr = 2\times10^{-4} \times \frac{ max(0, ep - ep_n)}{ep_d + 1},\] čia $ep$ – einamoji epocha, $ep_{n}$ – epochų kiekis, $ep_{d}$ – nykimo epochų kiekis.
+    
+            CycleGAN ir MSPC modelių mokymas vyko žymiai ilgiau nei CUT modelio mokymo, dėl jų transformacijų komutatyvumo požymio, kadangi reikia nuotrauką transformuot tiek iš domeno A į B, tiek iš B į A ir MSPC modelio mokymas truko ilgiau nei CycleGAN dėl mažesnio skaičiavimų kiekio, reikalingų minėtam vaizdo detalių palaikymui.
+            \begin{table}[H]\footnotesize
+              \centering
+              \caption{Modelių mokymo trukmės}
+              {\begin{tabular}{|l|c|c|} \hline
+                Modelio pavadinimas & Mokymo laikas, minutės\\
+                \hline
+                Cut V1 & 1524 \\
+                Cut V2 & 1520 \\ 
+                MSPC V1 & 4136 \\
+                MSPC V2 & 3897 \\
+                CycleGAN V1 & 2806 \\
+                CycleGAN V2 & 2620 \\
+                \hline
+              \end{tabular}}
+              \label{tab:table example}
+            \end{table}
 
-        Kiekvienas modelis buvo mokomas 100 epochų su vientisu mokymo greičiu (0.0002) ir 35 epochomis tiesišku mokymosi greičio nykimu (angl. \emph{decay}).  Kiekvienas modelis buvo apmokytas du kartus, vieną kartą su pirmąja GTA:VC eismo vaizdų duomenų rinkiniu, o antrą kartą su antrąja jo versija, todėl iš viso yra kiekvieno modelio dvi versijos vadinamos V1 ir V2, pavyzdžiui, CUT V1 ir CUT V2. Mokymosi greitis yra apskaičiuojama pagal šią formulę:
-        \[ lr = 2\times10^{-4} \times \frac{ max(0, ep - ep_n)}{ep_d + 1},\] čia $ep$ – einamoji epocha, $ep_{n}$ – epochų kiekis, $ep_{d}$ – nykimo epochų kiekis.
-
-        CycleGAN ir MSPC modelių mokymas vyko žymiai ilgiau nei CUT modelio mokymo, dėl jų transformacijų komutatyvumo požymio, kadangi reikia nuotrauką transformuot tiek iš domeno A į B, tiek iš B į A ir MSPC modelio mokymas truko ilgiau nei CycleGAN dėl mažesnio skaičiavimų kiekio, reikalingų minėtam vaizdo detalių palaikymui.
-        \begin{table}[H]\footnotesize
-          \centering
-          \caption{Modelių mokymo trukmės}
-          {\begin{tabular}{|l|c|c|} \hline
-            Modelio pavadinimas & Mokymo laikas, minutės\\
-            \hline
-            Cut V1 & 1524 \\
-            Cut V2 & 1520 \\ 
-            MSPC V1 & 4136 \\
-            MSPC V2 & 3897 \\
-            CycleGAN V1 & 2806 \\
-            CycleGAN V2 & 2620 \\
-            \hline
-          \end{tabular}}
-          \label{tab:table example}
-        \end{table}
 
     
+        \subsubsection{Modifikuoto MSPC modelio kūrimas ir mokymas}
+            Kadangi po pirminių mokymų geriausius rezultatus davė MSPC modelis, todėl naujam metodui buvo pasirinktas būtent šis modelis. MSPC modelis transformuojantis bendrą vaizdą buvo pirminiame eksperimente apmokytas MSPC V2 modelis, o modelis transformuojantis tik automobilius buvo minimaliai modifikuotas MSPC modelis. Buvo atliktos dvi modifikacijos: pridėtas ketvirtasis įvesties bei išvesties kanalas ir papildyta paklaidos formulė. 
+            
+            Pagal kodą, modelis palaiko tik du rėžimus - spalvotas ir juodai baltas spalvas. Šį modelį reikėjo pritaikyti transformacijai nuotraukų su permatomumo sluoksniu, tam kode reikėjo modifikuoti nuotraukos apdorojimo prieš paduodant modeliui funkcijas bei įvesties ir išvesties sluoksnius, kad palaikytų 4 dimensijų aibes. 
+            
+            Antroji modifikacija buvo atlikta po to, kai buvo pastebėta, jog transformuotos nuotraukos dažnai prarado turinį (t.y. toje vietoje, kur buvo automobilis, staiga ta vieta tapo permatoma) arba atsirado turinio, kur prieš tai buvo tuščia vieta. Ši paklaidos skaičiavimo formulė yra paprasta kvadratinės paklaidos formulė ir jos rezultatas pridedamas prie bendros paklaidos. Ši papildoma paklaida skirta „nubausti“ modelį už matomo turinio vietos keitimą.
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.8]{img/CarTrans/before}
+                \includegraphics[scale=0.8]{img/CarTrans/after}
+                \caption{Automobilio nuotraukos pavyzdys prieš (a) ir po (b) transformacijos.}
+                \label{img:mlp}
+            \end{figure}
+
+            Šis modelis apmokytas buvo tuo pačiu principu kaip modeliai praeitame skyriuje, išskyrus buvo sumažintas skaičius epochų iki 50 siekiant išvengti persimokymo.
+
+    \subsection{Panaudoti iš anksto apmokyti difuzijos modeliai}
+        
     \subsection{Modelių vertinimo metrikos}
         Modelių nuotraukų transformavimo gebėjimams vertinti buvo pasirinktos trys metrikos: FID ir SSIM, šie trumpiniai atitinkamai reiškia Fréchet pradžios atstumas (angl. \emph{Fréchet inception distance}) ir struktūrinis panašumas (angl. \emph{structural similarity index}).
         

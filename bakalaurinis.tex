@@ -35,15 +35,6 @@
 
 \begin{document}
 \maketitle
-% FID \ PSNR \ SSIM
-% ControlNet 194 \ 8.74 \ 0.2449105214732326
-% CycleDiffusion 190 \ 9.07 \ 0.7116405300115335
-% InstructPix2Pix 206 \ 9.45 \ 0.5877818667332189
-
-% MSPC + CAR 173 \ 14.31 \ 0.5996385821028906
-% MSPC V2 146 \ 14.7 \ 0.6316246324107513
-% CycleGAN v2 148 \ 14.61 \ 0.622627881117482
-% CUT V2 185 \ 13.41 \ 0.5090844693307679
 
 \sectionnonumnocontent{Santrauka}
     Pristatomas metodas vaizdo žaidimo eismo nuotraukų generavimui pasitelkiant porą generatyvinių adversarinių tinklų ir vaizdo segmentavimo modelį, taip sukuriant metodą sugebantį transformuoti nuotrauką į norimą domeną išsaugant norimos domeno klasės detales. Šiame straipsnyje aprašoma, kaip šiuo būdu galima transformuoti realaus eismo nuotrauką iš į vaizdo žaidimo eismo nuotrauką, atskirai transformuojant svarbiausią objektų klasę - automobilius. Papildomai, rezultatai yra palyginami su jau naujais ir jau apmokytais difuzijos modeliais.
@@ -200,49 +191,144 @@
             
     \subsection{Mokymo platformos}
         Paruošus modelius, jie buvo mokomi VU MIF superkompiuteriu. Mokoma buvo naudojant Linux Ubuntu operacinę sistemą (20.04 versiją) su PyTorch karkasu, pasitelkiant superkompiuterio Nvidia DGX-1 stotį, kurią sudaro keturios Nvidia Tesla V100 vaizdo plokštės.
-    \subsection{Mokymo procesas}
-        \subsubsection{Pirminių modelių mokymas}
-            Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
-    
-            Kiekvienas modelis buvo mokomas 100 epochų su vientisu mokymo greičiu (0.0002) ir 35 epochomis tiesišku mokymosi greičio nykimu (angl. \emph{decay}).  Kiekvienas modelis buvo apmokytas du kartus, vieną kartą su pirmąja GTA:VC eismo vaizdų duomenų rinkiniu, o antrą kartą su antrąja jo versija, todėl iš viso yra kiekvieno modelio dvi versijos vadinamos V1 ir V2, pavyzdžiui, CUT V1 ir CUT V2. Mokymosi greitis yra apskaičiuojama pagal šią formulę:
-            \[ lr = 2\times10^{-4} \times \frac{ max(0, ep - ep_n)}{ep_d + 1},\] čia $ep$ – einamoji epocha, $ep_{n}$ – epochų kiekis, $ep_{d}$ – nykimo epochų kiekis.
-    
-            CycleGAN ir MSPC modelių mokymas vyko žymiai ilgiau nei CUT modelio mokymo, dėl jų transformacijų komutatyvumo požymio, kadangi reikia nuotrauką transformuot tiek iš domeno A į B, tiek iš B į A ir MSPC modelio mokymas truko ilgiau nei CycleGAN dėl mažesnio skaičiavimų kiekio, reikalingų minėtam vaizdo detalių palaikymui.
-            \begin{table}[H]\footnotesize
-              \centering
-              \caption{Modelių mokymo trukmės}
-              {\begin{tabular}{|l|c|c|} \hline
-                Modelio pavadinimas & Mokymo laikas, minutės\\
-                \hline
-                Cut V1 & 1524 \\
-                Cut V2 & 1520 \\ 
-                MSPC V1 & 4136 \\
-                MSPC V2 & 3897 \\
-                CycleGAN V1 & 2806 \\
-                CycleGAN V2 & 2620 \\
-                \hline
-              \end{tabular}}
-              \label{tab:table example}
-            \end{table}
+    \subsection{Pirminių modelių mokymas}
+        Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
 
+        Kiekvienas modelis buvo mokomas 100 epochų su vientisu mokymo greičiu (0.0002) ir 35 epochomis tiesišku mokymosi greičio nykimu (angl. \emph{decay}).  Kiekvienas modelis buvo apmokytas du kartus, vieną kartą su pirmąja GTA:VC eismo vaizdų duomenų rinkiniu, o antrą kartą su antrąja jo versija, todėl iš viso yra kiekvieno modelio dvi versijos vadinamos V1 ir V2, pavyzdžiui, CUT V1 ir CUT V2. Mokymosi greitis yra apskaičiuojama pagal šią formulę:
+        \[ lr = 2\times10^{-4} \times \frac{ max(0, ep - ep_n)}{ep_d + 1},\] čia $ep$ – einamoji epocha, $ep_{n}$ – epochų kiekis, $ep_{d}$ – nykimo epochų kiekis.
 
-    
-        \subsubsection{Modifikuoto MSPC modelio kūrimas ir mokymas}
-            Kadangi po pirminių mokymų geriausius rezultatus davė MSPC modelis, todėl naujam metodui buvo pasirinktas būtent šis modelis. MSPC modelis transformuojantis bendrą vaizdą buvo pirminiame eksperimente apmokytas MSPC V2 modelis, o modelis transformuojantis tik automobilius buvo minimaliai modifikuotas MSPC modelis. Buvo atliktos dvi modifikacijos: pridėtas ketvirtasis įvesties bei išvesties kanalas ir papildyta paklaidos formulė. 
-            
-            Pagal kodą, modelis palaiko tik du rėžimus - spalvotas ir juodai baltas spalvas. Šį modelį reikėjo pritaikyti transformacijai nuotraukų su permatomumo sluoksniu, tam kode reikėjo modifikuoti nuotraukos apdorojimo prieš paduodant modeliui funkcijas bei įvesties ir išvesties sluoksnius, kad palaikytų 4 dimensijų aibes. 
-            
-            Antroji modifikacija buvo atlikta po to, kai buvo pastebėta, jog transformuotos nuotraukos dažnai prarado turinį (t.y. toje vietoje, kur buvo automobilis, staiga ta vieta tapo permatoma) arba atsirado turinio, kur prieš tai buvo tuščia vieta. Ši paklaidos skaičiavimo formulė yra paprasta kvadratinės paklaidos formulė ir jos rezultatas pridedamas prie bendros paklaidos. Ši papildoma paklaida skirta „nubausti“ modelį už matomo turinio vietos keitimą.
+        CycleGAN ir MSPC modelių mokymas vyko žymiai ilgiau nei CUT modelio mokymo, dėl jų transformacijų komutatyvumo požymio, kadangi reikia nuotrauką transformuot tiek iš domeno A į B, tiek iš B į A ir MSPC modelio mokymas truko ilgiau nei CycleGAN dėl mažesnio skaičiavimų kiekio, reikalingų minėtam vaizdo detalių palaikymui.
+        \begin{table}[H]\footnotesize
+          \centering
+          \caption{Modelių mokymo trukmės}
+          {\begin{tabular}{|l|c|c|} \hline
+            Modelio pavadinimas & Mokymo laikas, minutės\\
+            \hline
+            Cut V1 & 1524 \\
+            Cut V2 & 1520 \\ 
+            MSPC V1 & 4136 \\
+            MSPC V2 & 3897 \\
+            CycleGAN V1 & 2806 \\
+            CycleGAN V2 & 2620 \\
+            \hline
+          \end{tabular}}
+          \label{tab:table example}
+        \end{table}
 
+        \subsubsection{„Dingstančių automobilių“ problema}
+            Išmokius CycleGAN modelį buvo pastebėta, jog pradėjo dingti tam tikros stambios detalės iš nuotraukų, svarbiausia iš jų – automobiliai. Išmokyta pirmoji CycleGAN modelio versija linksta trinti automobilius ir uždengti tai aplinkos detalėmis ar fonu. Dėl to nuspręsta buvo išbandyti CUT modelį, kadangi jis pritaikytas nesuporuotų duomenų rinkinių uždaviniams, tačiau pirmoji jo versija yra dar labiau linkusi trinti automobilius iš nuotraukų. Dėl šios problemos taip pat buvo išbandytas MSPC modelis, nes juo yra sprendžiama nuotraukų semantinių detalių palaikymo problema. Nors MSPC modelis pasiekia geresnius rezultatus nei kiti du ties šia problema, tačiau išlaikomų automobilių kiekis vis tiek liko labai mažas (žr. 2 lentelę).
             \begin{figure}[H]
                 \centering
-                \includegraphics[scale=0.8]{img/CarTrans/before}
-                \includegraphics[scale=0.8]{img/CarTrans/after}
-                \caption{Automobilio nuotraukos pavyzdys prieš (a) ir po (b) transformacijos.}
+                \includegraphics[scale=0.8]{img/CycleGANV1/1_real_B}
+                \includegraphics[scale=0.8]{img/CycleGANV1/1_fake_A}
+                \captionsetup{width=.8\linewidth}
+                \caption{CycleGAN modelio transformuotos nuotraukos pavyzdys, kuriame yra panaikinami automobiliai.}
                 \label{img:mlp}
             \end{figure}
+            \begin{table}[H]
+                \footnotesize
+                \centering
+                \caption{Atpažintų automobilių kiekis duomenų rinkiniuose.}
+                {\begin{tabular}{|l|c|c|} \hline
+                    Modelio pavadinimas & Atpažintų automobilių kiekis, vnt. & Atpažintų automobilių dalis, \% \\
+                    \hline
+                    Testavimo duomenų rinkinys & 426 & - \\
+                    CycleGAN V1 & 15 & 3,5 \% \\
+                    CycleGAN V2 & 14 & 3,2 \% \\
+                    Cut V1 & 7 & 1,6 \% \\
+                    Cut V2 & 10 & 2,3 \% \\ 
+                    MSPC V1 & 10 & 2,3 \% \\
+                    MSPC V2 & 17 & 3,9 \% \\
+                    \hline
+                    \end{tabular}
+                }
+                \label{tab:table example}
+            \end{table}
+            
+            Automobilių atpažinties nuotraukose testavimui naudojamas Centernet HG-104 \cite{CenterNet} modelis iš anksto apmokytas su Microsoft CoCo duomenų rinkiniu \cite{CocoDataset}. Šis modelis sugeba pakankamai gerai atpažinti automobilius net ir vaizdo žaidimuose, tokiuose, kaip GTA:VC.
+            
+            Modeliai apmokyti patobulintu duomenų rinkiniu, kuriame yra daugiau nuotraukų, kuriose yra automobilių užimančių pakankamai didelį nuotraukos plotą, arba yra nuotraukų su daug automobilių nuotraukoje, demonstruoja geresnį sugebėjimą išlaikyti automobilius (išskyrus su CycleGAN modeliu, kurio statistika minimaliai sumažėjo). Atpažintų automobilių padidėjimas siekia 69~\% su MSPC modeliu, tačiau toks patobulėjimas yra beveik bereikšmis kadangi bendras atpažintų automobilių procentas lieka labai mažas.
+             
+            Gali būti daug priežasčių, kodėl modeliai yra taip linkę trinti automobilius iš nuotraukų, tačiau labiausiai tikėtina iš jų yra automobilių kiekiai duomenų rinkiniuose – GTA:VC duomenų rinkinyje jų yra žymiai mažiau. 3 lentelėje yra pateikti mokymo duomenų rinkiniuose esantys automobilių kiekiai ir kokia dalis nuotraukų turi juose atpažintą bent vieną automobilį.
+            \begin{table}[H]
+                \footnotesize
+                \centering
+                \caption{Duomenų rinkinių atpažintų automobilių kiekiai ir nuotraukų.}
+                {\begin{tabular}{|l|c|c|} \hline
+                    Duomenų rinkinys & Atpažintų automobilių kiekis, vnt. & Dalis nuotraukų kuriuose yra atpažinta automobilių, \%\\
+                    \hline
+                    BDD100K & 21624 & 89 \%\\
+                    GTA:VC V1 & 274 & 11 \%\\
+                    GTA:VC V2 & 653 & 23 \%\\
+                    \hline
+                    \end{tabular}
+                }
+                \label{tab:table example}
+            \end{table}
 
-            Šis modelis apmokytas buvo tuo pačiu principu kaip modeliai praeitame skyriuje, išskyrus buvo sumažintas skaičius epochų iki 50 siekiant išvengti persimokymo.
+            
+        \subsubsection{Paros meto keitimosi problema}
+                Gautose nuotraukose GAN modelių transformuotose nuotraukose pastebėta problema, jog tam tikrais atvejais yra pakeičiamas paros metas iš dienos į naktį. Tas dažniausiai įvyksta kai būna debesuota arba kai yra mažai matoma dangaus, tarkim kai aplinkui yra daug aukštų pastatų arba gamtos (žr. 5 pav.).
+                \begin{figure}[H]
+                    \centering
+                    \includegraphics[scale=0.7]{img/aukstu_pastatu_real}
+                    \includegraphics[scale=0.7]{img/aukstu_pastatu_fake}
+                    \includegraphics[scale=0.7]{img/debesu_real}
+                    \includegraphics[scale=0.7]{img/debesu_fake}
+                    \caption{CycleGAN V2 pavyzdžiai kur modelio dėl aukštų pastatų arba debesų yra diena  pakeičiama į naktį.}
+                    \label{img:mlp}
+                \end{figure}
+        \subsubsection{Kokybiškai transformuojamos detalės}
+            Modeliai itin gerai sugeba transformuoti gamtinius objektus, kaip žolė ir medžiai, iš realaus domeno į vaizdo žaidimo domeną. GTA:VC duomenų rinkinyje yra daug žaidime paplitusių palmių, kurios atrodo maždaug vienodai ir yra pavaizduotos 6 paveiksliuke.
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.7]{img/palmiu_pvz}
+                \caption{GTA:VC domeno palmių pavyzdys.}
+                \label{img:mlp}
+            \end{figure}
+    
+            Modelis medžius sugeba gerai atskirti ir juos transformuoti į GTA:VC domene matomus. Iš tamsiai žalios į šviesiai žalią spalvą pereinantys lapai yra nupiešiami medžiams ir net kamienai yra transformuojami į dryžuotai rudus. Ši elgsena yra būdinga visiems trims modeliams ir abejoms kiekvieno jų versijoms.
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.6]{img/palmiu_real}
+                \includegraphics[scale=0.6]{img/palmiu_fake}
+                \caption{MSPC V2 pavyzdžiai kur modelio dėl aukštų pastatų arba debesų yra diena  pakeičiama į naktį.}
+                \label{img:mlp}
+            \end{figure}
+    
+            Kitos dvi gerai transformuojamos detalės yra kelias ir dangus (kelio ir dangaus pavyzdys matomas 6 pav.). Dangus beveik visada įgauna įprastą saulėtos dienos mėlyną arba giedros nakties juodą spalvą. Nors, kaip prieš tai minėta, dangus kartais pakeičia dienos laiką, tačiau ir naktinis dangus yra tiksliai transformuojamas.
+            Asfalto spalva taip pat yra labai gerai parenkama. Nors šios detalės yra labai paprastai transformuojamos, tačiau jos sudaro didelę dalį bendros transformuotos nuotraukos kokybės ir panašumo į vaizdo žaidimo domeną.    
+
+    
+    
+    \subsection{Modifikuoto MSPC modelio kūrimas ir mokymas}
+        Po pirminių modelių mokymo rezultatų, buvo pastebėta, kad dingsta daug automobilių ir dėl to buvo nuspręsta sukurti metodą, sugebantį išskirti automobilius iš nuotraukos, juos transformuoti atskirai nuo bendro turinio ir po to gautą rezultatą įklijuoti į transformuotą nuotrauką. Kadangi po pirminių mokymų geriausius rezultatus davė MSPC modelis, todėl naujam metodui buvo pasirinktas būtent šis modelis. MSPC modelis transformuojantis bendrą vaizdą buvo pirminiame eksperimente apmokytas MSPC V2 modelis, o modelis transformuojantis tik automobilius buvo minimaliai modifikuotas MSPC modelis. Buvo atliktos dvi modifikacijos: pridėtas ketvirtasis įvesties bei išvesties kanalas ir papildyta paklaidos formulė. 
+        
+        Pagal kodą, modelis palaiko tik du rėžimus - spalvotas ir juodai baltas spalvas. Šį modelį reikėjo pritaikyti transformacijai nuotraukų su permatomumo sluoksniu, tam kode reikėjo modifikuoti nuotraukos apdorojimo prieš paduodant modeliui funkcijas bei įvesties ir išvesties sluoksnius, kad palaikytų 4 dimensijų aibes. 
+        
+        Antroji modifikacija buvo atlikta po to, kai buvo pastebėta, jog transformuotos nuotraukos dažnai prarado turinį (t.y. toje vietoje, kur buvo automobilis, staiga ta vieta tapo permatoma) arba atsirado turinio, kur prieš tai buvo tuščia vieta. Ši paklaidos skaičiavimo formulė yra paprasta kvadratinės paklaidos formulė ir jos rezultatas pridedamas prie bendros paklaidos. Ši papildoma paklaida skirta „nubausti“ modelį už matomo turinio vietos keitimą.
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[scale=0.8]{img/CarTrans/before}
+            \includegraphics[scale=0.8]{img/CarTrans/after}
+            \caption{Automobilio nuotraukos pavyzdys prieš (a) ir po (b) transformacijos.}
+            \label{img:mlp}
+        \end{figure}
+
+        Šis modelis apmokytas buvo tuo pačiu principu kaip modeliai praeitame skyriuje, išskyrus buvo sumažintas skaičius epochų iki 50 siekiant išvengti persimokymo.
+
+        Galutiniam metodui sukurti, buvo sukurta programa naudojanti pirminiame eksperimente sukurtą MSPC V2 modelį, automobilių transformavimo MSPC modelį ir duomenų rinkinio kūrime naudotą DeepLabV3 segmentavimo modelį. Ši programa veikia tokiu eiliškumu:
+            \begin{enumerate}
+                \item Bendro MSPC (antrojo duomenų rinkinio versijos) modelio paruošimas;
+                \item Automobilių transformavimo MSPC modelio paruošimas;
+                \item Nuotraukos nuskaitymas;
+                \item Bendros nuotraukos transformavimas;
+                \item Originalios nuotraukos segmetavimas ir \emph{alpha} kaukės paruošimas naudojant DeepLabV3 modelį;
+                \item Maskuotos nuotraukos transformavimas antruoju modeliu;
+                \item Maskuotos nuotraukos sujungimas su transformuota bendra nuotrauka;
+                \item Bendros nuotraukos išsaugojimas.
+            \end{enumerate}
 
     \subsection{Panaudoti iš anksto apmokyti difuzijos modeliai}
         
@@ -261,90 +347,17 @@
 
             Šio uždavinio atveju, idealu būtų didesnis SSIM įvertis, nes tai reikštų, jog pakankamai gerai išlaikoma turinio struktūra, tačiau, kad nebūtų arti 1, nes tai reikštų, kad yra pakeista per mažai turinio, nėra atvaizduojama pakankamai vaizdo žaidimo vaizdinio stiliaus ir yra paliekama per daug realaus eismo vaizdo aspektų. 
         
-    \subsection{„Dingstančių automobilių“ problema}
-        Išmokius CycleGAN modelį buvo pastebėta, jog pradėjo dingti tam tikros stambios detalės iš nuotraukų, svarbiausia iš jų – automobiliai. Išmokyta pirmoji CycleGAN modelio versija linksta trinti automobilius ir uždengti tai aplinkos detalėmis ar fonu. Dėl to nuspręsta buvo išbandyti CUT modelį, kadangi jis pritaikytas nesuporuotų duomenų rinkinių uždaviniams, tačiau pirmoji jo versija yra dar labiau linkusi trinti automobilius iš nuotraukų. Dėl šios problemos taip pat buvo išbandytas MSPC modelis, nes juo yra sprendžiama nuotraukų semantinių detalių palaikymo problema. Nors MSPC modelis pasiekia geresnius rezultatus nei kiti du ties šia problema, tačiau išlaikomų automobilių kiekis vis tiek liko labai mažas (žr. 2 lentelę).
-        \begin{figure}[H]
-            \centering
-            \includegraphics[scale=0.8]{img/CycleGANV1/1_real_B}
-            \includegraphics[scale=0.8]{img/CycleGANV1/1_fake_A}
-            \captionsetup{width=.8\linewidth}
-            \caption{CycleGAN modelio transformuotos nuotraukos pavyzdys, kuriame yra panaikinami automobiliai.}
-            \label{img:mlp}
-        \end{figure}
-        \begin{table}[H]
-            \footnotesize
-            \centering
-            \caption{Atpažintų automobilių kiekis duomenų rinkiniuose.}
-            {\begin{tabular}{|l|c|c|} \hline
-                Modelio pavadinimas & Atpažintų automobilių kiekis, vnt. & Atpažintų automobilių dalis, \% \\
-                \hline
-                Testavimo duomenų rinkinys & 426 & - \\
-                CycleGAN V1 & 15 & 3,5 \% \\
-                CycleGAN V2 & 14 & 3,2 \% \\
-                Cut V1 & 7 & 1,6 \% \\
-                Cut V2 & 10 & 2,3 \% \\ 
-                MSPC V1 & 10 & 2,3 \% \\
-                MSPC V2 & 17 & 3,9 \% \\
-                \hline
-                \end{tabular}
-            }
-            \label{tab:table example}
-        \end{table}
-        Automobilių atpažinties nuotraukose testavimui naudojamas Centernet HG-104 \cite{CenterNet} modelis iš anksto apmokytas su Microsoft CoCo duomenų rinkiniu \cite{CocoDataset}. Šis modelis sugeba pakankamai gerai atpažinti automobilius net ir vaizdo žaidimuose, tokiuose, kaip GTA:VC.
-        
-        Modeliai apmokyti patobulintu duomenų rinkiniu, kuriame yra daugiau nuotraukų, kuriose yra automobilių užimančių pakankamai didelį nuotraukos plotą, arba yra nuotraukų su daug automobilių nuotraukoje, demonstruoja geresnį sugebėjimą išlaikyti automobilius (išskyrus su CycleGAN modeliu, kurio statistika minimaliai sumažėjo). Atpažintų automobilių padidėjimas siekia 69~\% su MSPC modeliu, tačiau toks patobulėjimas yra beveik bereikšmis kadangi bendras atpažintų automobilių procentas lieka labai mažas.
-         
-        Gali būti daug priežasčių, kodėl modeliai yra taip linkę trinti automobilius iš nuotraukų, tačiau labiausiai tikėtina iš jų yra automobilių kiekiai duomenų rinkiniuose – GTA:VC duomenų rinkinyje jų yra žymiai mažiau. 3 lentelėje yra pateikti mokymo duomenų rinkiniuose esantys automobilių kiekiai ir kokia dalis nuotraukų turi juose atpažintą bent vieną automobilį.
-        \begin{table}[H]
-            \footnotesize
-            \centering
-            \caption{Duomenų rinkinių atpažintų automobilių kiekiai ir nuotraukų.}
-            {\begin{tabular}{|l|c|c|} \hline
-                Duomenų rinkinys & Atpažintų automobilių kiekis, vnt. & Dalis nuotraukų kuriuose yra atpažinta automobilių, \%\\
-                \hline
-                BDD100K & 21624 & 89 \%\\
-                GTA:VC V1 & 274 & 11 \%\\
-                GTA:VC V2 & 653 & 23 \%\\
-                \hline
-                \end{tabular}
-            }
-            \label{tab:table example}
-        \end{table}
-
+   
     
-    \subsection{Paros meto keitimosi problema}
-        Gautose nuotraukose pastebėta problema, jog tam tikrais atvejais yra pakeičiamas paros metas iš dienos į naktį. Tas dažniausiai įvyksta kai būna debesuota arba kai yra mažai matoma dangaus, tarkim kai aplinkui yra daug aukštų pastatų arba gamtos (žr. 5 pav.).
-        \begin{figure}[H]
-            \centering
-            \includegraphics[scale=0.7]{img/aukstu_pastatu_real}
-            \includegraphics[scale=0.7]{img/aukstu_pastatu_fake}
-            \includegraphics[scale=0.7]{img/debesu_real}
-            \includegraphics[scale=0.7]{img/debesu_fake}
-            \caption{CycleGAN V2 pavyzdžiai kur modelio dėl aukštų pastatų arba debesų yra diena  pakeičiama į naktį.}
-            \label{img:mlp}
-        \end{figure}
-    \subsection{Kokybiškai transformuojamos detalės}
-        Modeliai itin gerai sugeba transformuoti gamtinius objektus, kaip žolė ir medžiai, iš realaus domeno į vaizdo žaidimo domeną. GTA:VC duomenų rinkinyje yra daug žaidime paplitusių palmių, kurios atrodo maždaug vienodai ir yra pavaizduotos 6 paveiksliuke.
-        \begin{figure}[H]
-            \centering
-            \includegraphics[scale=0.7]{img/palmiu_pvz}
-            \caption{GTA:VC domeno palmių pavyzdys.}
-            \label{img:mlp}
-        \end{figure}
+% FID \ PSNR \ SSIM
+% ControlNet 194 \ 8.74 \ 0.2449105214732326
+% CycleDiffusion 190 \ 9.07 \ 0.7116405300115335
+% InstructPix2Pix 206 \ 9.45 \ 0.5877818667332189
 
-        Modelis medžius sugeba gerai atskirti ir juos transformuoti į GTA:VC domene matomus. Iš tamsiai žalios į šviesiai žalią spalvą pereinantys lapai yra nupiešiami medžiams ir net kamienai yra transformuojami į dryžuotai rudus. Ši elgsena yra būdinga visiems trims modeliams ir abejoms kiekvieno jų versijoms.
-        \begin{figure}[H]
-            \centering
-            \includegraphics[scale=0.6]{img/palmiu_real}
-            \includegraphics[scale=0.6]{img/palmiu_fake}
-            \caption{MSPC V2 pavyzdžiai kur modelio dėl aukštų pastatų arba debesų yra diena  pakeičiama į naktį.}
-            \label{img:mlp}
-        \end{figure}
-
-        Kitos dvi gerai transformuojamos detalės yra kelias ir dangus (kelio ir dangaus pavyzdys matomas 6 pav.). Dangus beveik visada įgauna įprastą saulėtos dienos mėlyną arba giedros nakties juodą spalvą. Nors, kaip prieš tai minėta, dangus kartais pakeičia dienos laiką, tačiau ir naktinis dangus yra tiksliai transformuojamas.
-        Asfalto spalva taip pat yra labai gerai parenkama. Nors šios detalės yra labai paprastai transformuojamos, tačiau jos sudaro didelę dalį bendros transformuotos nuotraukos kokybės ir panašumo į vaizdo žaidimo domeną.
-
-    
+% MSPC + CAR 173 \ 14.31 \ 0.5996385821028906
+% MSPC V2 146 \ 14.7 \ 0.6316246324107513
+% CycleGAN v2 148 \ 14.61 \ 0.622627881117482
+% CUT V2 185 \ 13.41 \ 0.5090844693307679
     \subsection{Gauti įverčiai}
         \subsubsection{FID įverčiai}
             Apmokius modelius buvo apskaičiuotos FID metrikos indikuojančios, kaip kokybiškai modeliai sugeba transformuoti nuotraukas lyginant su tikslo domenu.
@@ -355,20 +368,24 @@
                 {\begin{tabular}{|l|c|c|} \hline
                     Modelio pavadinimas & FID & Atpažintų automobilių kiekis, vnt.\\
                     \hline
-                    CycleGAN V1 & 170 & 15\\
+                    MSPC V2 & 145 & 17\\
                     CycleGAN V2 & 161 & 14\\
+                    MSPC V1 & 167 & 10\\
+                    CycleGAN V1 & 170 & 15\\
+                    MSPC Car & 173 & 44\\ %33
                     Cut V1 & 181 & 7\\
                     Cut V2 & 186 & 10\\ 
-                    MSPC V1 & 167 & 10\\
-                    MSPC V2 & 145 & 17\\
+                    CycleDiffusion & 190 & 171 \\ %73
+                    ControlNet & 194 & 231 \\ %96 
+                    InstructPix2Pix & 206 & 121 \\ %69
                     \hline
                     \end{tabular}
                 }
                 \label{tab:table example}
             \end{table}
     
-            Remiantis 4 lentelės duomenimis, matoma, jog geriausias FID nebūtinai reiškia geriausius rezultatus. Antroji apmokyta CycleGAN versija patobulino savo FID, tačiau, nors ir minimaliai, nukrito atpažįstamų automobilių skaičius, o CUT modeliui yra atvirkštinė situacija – antroji modelio versija padidino aptiktų automobilių skaičių, tačiau dėl to sumažėjo FID įvertis. Vienintelis modelis visiškai patobulėjęs nuo pagerinto GTA:VC duomenų rinkinio yra MSPC, jo atpažintų automobilių skaičius padidėjo ir FID įvertis sumažėjo. Pagal šiuos rezultatus matoma, jog iš trijų bandytų modelių, MSPC teikia geriausius rezultatus.
-        \subsubsection{PNSR įverčiai}
+            Remiantis 4 lentelės duomenimis, matoma, jog geriausias FID nebūtinai reiškia geriausius rezultatus. Antroji apmokyta CycleGAN versija patobulino savo FID, tačiau, nors ir minimaliai, nukrito atpažįstamų automobilių skaičius, o CUT modeliui yra atvirkštinė situacija – antroji modelio versija padidino aptiktų automobilių skaičių, tačiau dėl to sumažėjo FID įvertis. Vienintelis modelis visiškai patobulėjęs nuo pagerinto GTA:VC duomenų rinkinio yra MSPC, jo atpažintų automobilių skaičius padidėjo ir FID įvertis sumažėjo. Pagal šiuos rezultatus matoma, jog iš trijų bandytų modelių, MSPC teikia geriausius rezultatus. Taip pat difuzijos modelių FID įverčiai teigtų, jog nuotraukos yra prasčiau transformuojamos, tačiau pažvelgus į pavyzdžius, matome, jog turinys geresnis iš detalių išlaikymo perspektyvos nors ir nuotraukų stilius iškraipomas.
+        \subsubsection{SSIM įverčiai}
         
     
 \sectionnonum{Rezultatai ir išvados}
@@ -392,6 +409,7 @@ Tyrimo išvados:
     \item \textbf{GTA V} – Žaidimas „Grand Theft Auto 5“.
     \item \textbf{FID} – angl. \emph{Fréchet inception distance} – Fréchet pradžios atstumas, yra metrika naudojama įvertinti generatyvinių modelių kokybę.
     \item \textbf{IS} – angl. \emph{Inception score} – pradžios įvertis, yra metrika naudojama įvertinti generatyvinių modelių kokybę.
+    \item \textbf{SSIM} – angl. \emph{Structural similarity index} – struktūrinis panašumas, metrika naudojama įvertinti generatyvių modelių kokybę.
 \end{enumerate}
 
     

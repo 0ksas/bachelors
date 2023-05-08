@@ -1,6 +1,5 @@
 \documentclass{VUMIFPSbakalaurinis}
 \usepackage{float}
-\usepackage{hyperref}
 \usepackage{algorithmicx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
@@ -15,6 +14,29 @@
 \usepackage{wrapfig}
 \usepackage{biblatex}
 \usepackage{microtype}
+\usepackage{subfig}
+\usepackage{wrapfig}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
 
 % Titulinio aprašas
 \university{Vilniaus universitetas}
@@ -137,6 +159,7 @@
         \item Duomenų rinkinio paruošimas,
         \item Modelių paruošimas;
         \item Mokymas;
+        \item Apmokytų difuzijos modelių paruošimas ir panaudojimas
         \item Rezultatų išvedimas.
     \end{enumerate}
     Jei rezultatai nėra patenkinami, tai ciklą kartojama nuo numanomo problemos taško. Šiame skyriuje aprašomi šio proceso žingsniai.
@@ -192,7 +215,7 @@
     \subsection{Mokymo platformos}
         Paruošus modelius, jie buvo mokomi VU MIF superkompiuteriu. Mokoma buvo naudojant Linux Ubuntu operacinę sistemą (20.04 versiją) su PyTorch karkasu, pasitelkiant superkompiuterio Nvidia DGX-1 stotį, kurią sudaro keturios Nvidia Tesla V100 vaizdo plokštės.
     \subsection{Pirminių modelių mokymas}
-        Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
+        Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
 
         Kiekvienas modelis buvo mokomas 100 epochų su vientisu mokymo greičiu (0.0002) ir 35 epochomis tiesišku mokymosi greičio nykimu (angl. \emph{decay}).  Kiekvienas modelis buvo apmokytas du kartus, vieną kartą su pirmąja GTA:VC eismo vaizdų duomenų rinkiniu, o antrą kartą su antrąja jo versija, todėl iš viso yra kiekvieno modelio dvi versijos vadinamos V1 ir V2, pavyzdžiui, CUT V1 ir CUT V2. Mokymosi greitis yra apskaičiuojama pagal šią formulę:
         \[ lr = 2\times10^{-4} \times \frac{ max(0, ep - ep_n)}{ep_d + 1},\] čia $ep$ – einamoji epocha, $ep_{n}$ – epochų kiekis, $ep_{d}$ – nykimo epochų kiekis.
@@ -302,7 +325,7 @@
     
     
     \subsection{Modifikuoto MSPC modelio kūrimas ir mokymas}
-        Po pirminių modelių mokymo rezultatų, buvo pastebėta, kad dingsta daug automobilių ir dėl to buvo nuspręsta sukurti metodą, sugebantį išskirti automobilius iš nuotraukos, juos transformuoti atskirai nuo bendro turinio ir po to gautą rezultatą įklijuoti į transformuotą nuotrauką. Kadangi po pirminių mokymų geriausius rezultatus davė MSPC modelis, todėl naujam metodui buvo pasirinktas būtent šis modelis. MSPC modelis transformuojantis bendrą vaizdą buvo pirminiame eksperimente apmokytas MSPC V2 modelis, o modelis transformuojantis tik automobilius buvo minimaliai modifikuotas MSPC modelis. Buvo atliktos dvi modifikacijos: pridėtas ketvirtasis įvesties bei išvesties kanalas ir papildyta paklaidos formulė. 
+        Po pirminių modelių mokymo rezultatų, buvo pastebėta, kad dingsta daug automobilių ir dėl to buvo nuspręsta sukurti metodą, sugebantį išskirti automobilius iš nuotraukos, juos transformuoti atskirai nuo bendro turinio ir po to gautą rezultatą įklijuoti į transformuotą nuotrauką, šis modelis toliau vadinamas „MSPC Car“. Kadangi po pirminių mokymų geriausius rezultatus davė MSPC modelis, todėl naujam metodui buvo pasirinktas būtent šis modelis. MSPC modelis transformuojantis bendrą vaizdą buvo pirminiame eksperimente apmokytas MSPC V2 modelis, o modelis transformuojantis tik automobilius buvo minimaliai modifikuotas MSPC modelis. Buvo atliktos dvi modifikacijos: pridėtas ketvirtasis įvesties bei išvesties kanalas ir papildyta paklaidos formulė. 
         
         Pagal kodą, modelis palaiko tik du rėžimus - spalvotas ir juodai baltas spalvas. Šį modelį reikėjo pritaikyti transformacijai nuotraukų su permatomumo sluoksniu, tam kode reikėjo modifikuoti nuotraukos apdorojimo prieš paduodant modeliui funkcijas bei įvesties ir išvesties sluoksnius, kad palaikytų 4 dimensijų aibes. 
         
@@ -330,8 +353,85 @@
                 \item Bendros nuotraukos išsaugojimas.
             \end{enumerate}
 
+    
     \subsection{Panaudoti iš anksto apmokyti difuzijos modeliai}
-        
+        Buvo panaudoti 3 difuzijos modeliai: ControlNet-Seg, InstructPix2Pix ir CycleDiffusion modeliai. Jie visi trys veikia skirtingai ir duoda unikalius rezultatus. Jų tikslesnis veikimas aprašytas pirmo skyriaus antrame poskyryje. Šie modeliai nebuvo apmokomi, o buvo naudoti jau apmokyti (angl. \emph{pre-trained}).
+
+        Visi šie modeliai buvo panaudoti su testavimo duomenų rinkiniu.
+
+        \subsubsection{ControlNet-Seg modelis}
+            Šis modelis atspindi tai, koks buvo MSPC Car modelio tikslas, nors rezultatai nėra tokie, kokių buvo siekta su MSPC Car modeliu. Kaip minėta modelių apžvalgos skyriuje, šis modelis transformuoja remiantis segmentacijos kaukėmis, taip žinantis kurią dalį kaip transformuoti. Tai suteikia korektiškesnį turinio išlaikymą ir mažesnį semantinį nuokrypį.
+
+            Šis modelis buvo panaudotas naudojant žiniatinklio paslaugą (angl. \emph{API}) prieinamą puslapio nuorodoje \href{https://replicate.com/jagilley/controlnet-seg}{https://replicate.com/jagilley/controlnet-seg}. Joje suteikiamas limituotas kiekis nemokamų užklausų ir vėliau užklausos tampa mokamos.
+
+            Buvo pastebėta, jog nuotraukų transformacijos rezultatai stipriai priklauso nuo pasirinkto nuotraukos dydžio. Pasirinkus 512 pikselių kvadratinę nuotrauką, rezultatai yra aiškus ir tvarkingi (žr. 12 pav.), tačiau pasirinkus 256 pikselių nuotraukos dydį, rezultatai tapo abstraktiškesni su suliejamomis detalėmis bei daug kur atsirasdavo nelogiškos spalvos, pavyzdžiui, žalias dangus (žr. 13 pav.). 
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.5]{img/diffusion/controlnet/512}
+                \caption{ControlNet-Seg modelio pavyzdinis rezultatas su 512 piksleių nuotraukos dydžio parametru.}
+                \label{img:mlp}
+            \end{figure}
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=1]{img/diffusion/controlnet/256}
+                \caption{ControlNet-Seg modelio pavyzdinis rezultatas su 256 piksleių nuotraukos dydžio parametru.}
+                \label{img:mlp}
+            \end{figure}
+
+            Nors ir statistikos šiam modeliui nėra geros, tačiau nuotraukų kokybė, subjektyviai žiūrint, yra geriausia. Detalės yra išlaikomos, stilius perteikiamas, nuotraukos nėra konservatyviai transformuojamos ir nuotraukose lieka labai mažai triukšmo.
+
+        \subsubsection{InstructPix2Pix modelis}
+            Kaip minėta modelių apžvalgos skyriuje, šis modelis veikia „paliepimo“ principu. Pateikiant nuotrauką, pateikta tekstinė įvestis turi būti komandos tipo, pavyzdžiui „paversk kalnus snieguotais“. Šis modelis yra jau apmokytas ir pateiktas viešai prieigai HuggingFace bibliotekoje. Jo panaudojimas labai lengvas, nereikalaujantis ilgo kodo ar daug pasiruošimo. Užtenka trumpo Python kalbos kodo, kuris paremtas oficialia pavyzdine implementacija, prieinama nuoroda \href{https://huggingface.co/timbrooks/instruct-pix2pix}{https://huggingface.co/timbrooks/instruct-pix2pix}:
+
+            \begin{lstlisting}
+import torch
+
+from diffusers import StableDiffusionInstructPix2PixPipeline
+import transformers
+from PIL import Image
+import glob
+import os
+
+model_id_or_path = "timbrooks/instruct-pix2pix"
+pipe = StableDiffusionInstructPix2PixPipeline.from_pretrained(model_id_or_path, torch_dtype=torch.float16).to("cuda")
+generator = torch.Generator("cuda").manual_seed(0)
+
+init_image = Image.open("input.jpg").convert("RGB").resize((512, 512))
+
+edited_image = pipe(
+    "turn into Vice City style",
+    image=init_image,
+    num_inference_steps=60,
+    image_guidance_scale=1.5,
+    guidance_scale=10,
+    generator=generator,
+    ).images[0]
+edited_image.save("output.jpg")
+            \end{lstlisting}
+
+            InstructPix2Pix modelis duoda kiek nuviliančius rezultatus, nors ir švaresnius bei su išliekančiomis detalėmis. Modelio pagrindinės transformacijos yra spalvų pakeitimas į žydrą ir rožinę, tačiau nei kelio, nei pastatų, nei dangau spalvos neatitinka GTA:VC stiliaus (žr. 14 pav.). 
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.7]{img/diffusion/instruct/512}
+                \caption{InstructPix2Pix modelio pavyzdinis rezultatas.}
+                \label{img:mlp}
+            \end{figure}
+
+        \subsubsection{CycleDiffusion modelis}
+            Šis modelis taip pat buvo atsisiųstas ir panaudotas naudojant HuggingFace biblioteką bei galima būtų pritaikyti panašų pavyzdinį kodą iš InstructPix2Pix skyriaus, du esminiai skirtumai: modelio pavadinimas šiuo atveju būtų „CompVis/stable-diffusion-v1-4“ ir reikėtų pateikti ne tik rezultato tekstinę reikšmę, bet ir įvesties nuotraukos tekstinį apibūdinimą.
+
+            Šis modelis yra mažiau stabilus, daugely nuotraukų yra triukšmo, panaikinamos detalės, įterpiami artefaktai arba paprasčiausiai netransformuojamos detalės (žr. 15 pav.)
+
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.7]{img/diffusion/cycle/512}
+                \caption{InstructPix2Pix modelio pavyzdinis rezultatas.}
+                \label{img:mlp}
+            \end{figure}
+            
     \subsection{Modelių vertinimo metrikos}
         Modelių nuotraukų transformavimo gebėjimams vertinti buvo pasirinktos trys metrikos: FID ir SSIM, šie trumpiniai atitinkamai reiškia Fréchet pradžios atstumas (angl. \emph{Fréchet inception distance}) ir struktūrinis panašumas (angl. \emph{structural similarity index}).
         
@@ -364,43 +464,98 @@
             \begin{table}[H]
                 \footnotesize
                 \centering
-                \caption{Apmokytų modelių gauti FID įverčiai ir atpažintų automobilių kiekiai.}
+                \caption{Apmokytų modelių gauti FID įverčiai.}
                 {\begin{tabular}{|l|c|c|} \hline
-                    Modelio pavadinimas & FID & Atpažintų automobilių kiekis, vnt.\\
+                    Modelio pavadinimas & FID\\
                     \hline
-                    MSPC V2 & 145 & 17\\
-                    CycleGAN V2 & 161 & 14\\
-                    MSPC V1 & 167 & 10\\
-                    CycleGAN V1 & 170 & 15\\
-                    MSPC Car & 173 & 44\\ %33
-                    Cut V1 & 181 & 7\\
-                    Cut V2 & 186 & 10\\ 
-                    CycleDiffusion & 190 & 171 \\ %73
-                    ControlNet & 194 & 231 \\ %96 
-                    InstructPix2Pix & 206 & 121 \\ %69
+                    MSPC V2 & 145\\
+                    CycleGAN V2 & 161\\
+                    MSPC V1 & 167\\
+                    CycleGAN V1 & 170\\
+                    MSPC Car & 173\\ %33
+                    Cut V1 & 181\\
+                    Cut V2 & 186\\ 
+                    CycleDiffusion & 190\\ %73
+                    ControlNet & 194\\ %96 
+                    InstructPix2Pix & 206\\ %69
                     \hline
                     \end{tabular}
                 }
                 \label{tab:table example}
             \end{table}
     
-            Remiantis 4 lentelės duomenimis, matoma, jog geriausias FID nebūtinai reiškia geriausius rezultatus. Antroji apmokyta CycleGAN versija patobulino savo FID, tačiau, nors ir minimaliai, nukrito atpažįstamų automobilių skaičius, o CUT modeliui yra atvirkštinė situacija – antroji modelio versija padidino aptiktų automobilių skaičių, tačiau dėl to sumažėjo FID įvertis. Vienintelis modelis visiškai patobulėjęs nuo pagerinto GTA:VC duomenų rinkinio yra MSPC, jo atpažintų automobilių skaičius padidėjo ir FID įvertis sumažėjo. Pagal šiuos rezultatus matoma, jog iš trijų bandytų modelių, MSPC teikia geriausius rezultatus. Taip pat difuzijos modelių FID įverčiai teigtų, jog nuotraukos yra prasčiau transformuojamos, tačiau pažvelgus į pavyzdžius, matome, jog turinys geresnis iš detalių išlaikymo perspektyvos nors ir nuotraukų stilius iškraipomas.
-        \subsubsection{SSIM įverčiai}
+            Remiantis 4 lentelės duomenimis, matoma, jog geriausias FID nebūtinai reiškia geriausius rezultatus. Antroji apmokyta CycleGAN versija patobulino savo FID, tačiau, nors ir minimaliai, nukrito atpažįstamų automobilių skaičius (žr. 6 lentelę), o CUT modeliui yra atvirkštinė situacija – antroji modelio versija padidino aptiktų automobilių skaičių, tačiau dėl to sumažėjo FID įvertis. Vienintelis modelis visiškai patobulėjęs nuo pagerinto GTA:VC duomenų rinkinio yra MSPC, jo atpažintų automobilių skaičius padidėjo ir FID įvertis sumažėjo. Pagal šiuos rezultatus matoma, jog iš trijų bandytų modelių, MSPC teikia geriausius rezultatus. MSPC Car modelis gerokai suprastino savo FID įverti, tačiau padvigubino savo aptiktų automobilių skaičių. Taip pat difuzijos modelių FID įverčiai teigtų, jog nuotraukos yra prasčiau transformuojamos, tačiau pažvelgus į pavyzdžius, matome, jog turinys geresnis iš detalių išlaikymo perspektyvos nors ir nuotraukų stilius iškraipomas.
+
+        \subsubsection{Atpažintų automobilių kiekiai}
+            5 lentelėje ryškiai matomas difuzijos modelių pranašumas. Jie daug geriau sugeba atpažįstamai išlaikyti automobilius. Naujo MSPC Car modelio atpažintų automobilių kiekis padidėjo daugiau nei dvigubai lyginant su paprastu pavieniu MSPC V2 modeliu.
         
+            \begin{table}[H]
+                \footnotesize
+                \centering
+                \caption{Apmokytų modelių atpažintų automobilių kiekiai ir dalis visų atpažintų automobilių realaus domeno testavimo duomenų rinkinyje.}
+                {\begin{tabular}{|l|c|c|} \hline
+                    Modelio pavadinimas & Atpažintų automobilių kiekis, vnt. & Atpažintų automobilių kiekis, \% \\
+                    \hline
+                    ControlNet & 231 & 54,2 \%\\ %96 
+                    CycleDiffusion & 171 & 40,1 \% \\ %73
+                    InstructPix2Pix & 121 & 28,4 \%\\ %69
+                    MSPC Car & 44 & 10,3 \%\\ %33
+                    MSPC V2 & 17 & 3,9 \%\\
+                    CycleGAN V1 & 15 & 3,5 \%\\
+                    CycleGAN V2 & 14 & 3,2 \%\\
+                    MSPC V1 & 10 & 2,3 \%\\
+                    Cut V2 & 10 & 2,3 \%\\ 
+                    Cut V1 & 7 & 1,6 \%\\
+                    \hline
+                    \end{tabular}
+                }
+                \label{tab:table example}
+            \end{table}
+
+        \subsubsection{SSIM įverčiai}
+            Iš statistikos, taip pat buvo apskaičiuota SSIM metrika, kuri skirta apskaičiuoti struktūrinį panašumą tarp nuotraukų. Šioje metrikoje šiame uždavinyje geras rezultatas neturėtų būti 1, nes tai reikštų, kad nuotrauka buvo mažai pakeista, o kai yra toks skirtumas tarp domenų stilių, tas yra reikalinga. Taip pat 0 būtų prastas rezultatas, kadangi tai reikštų, jog pakeista buvo per daug ir visiškai neišlaikyta struktūra. Dėl šių priežasčių ši metrika pavienė mažai ką sako ir reikėtų ją vertinti kartu su FID bei atpažintų automobilių metrikomis. 
+            
+            Iš panaudotų modelių, geriausią SSIM metriką pasiekė CycleDiffusion modelis, tačiau iš pavyzdinių nuotraukų (žr. 4 priedą), akivaizdu, jog tai pasiekta dėl gan mažo nuotraukų pakeitimo. Be CycleDiffusion modelio, geriausią SSIM ir FID metriką pasiekė MSPC V2 modelis, kuris taip pat turi didžiausią atpažintų automobilių kiekį neskaitant difuzijos ir MPSC Car modelio.
+
+        
+            \begin{table}[H]
+                \footnotesize
+                \centering
+                \caption{Apmokytų modelių gauti SSIM įverčiai.}
+                {\begin{tabular}{|l|c|c|} \hline
+                    Modelio pavadinimas & SSIM įvertis, nuo 0 iki 1\\
+                    \hline
+                    CycleDiffusion & 0,7116 \\ %73
+                    MSPC V2 & 0,6316 \\
+                    CycleGAN V2 & 0,6226 \\
+                    MSPC Car & 0,5996 \\ %33
+                    MSPC V1 & 0,5927 \\
+                    InstructPix2Pix & 0,5879 \\ %69
+                    CycleGAN V1 & 0,5772 \\
+                    Cut V2 & 0,5091\\ 
+                    CUT V1 & 0,4726 \\
+                    ControlNet & 0,2449 \\ %96 
+                    \hline
+                    \end{tabular}
+                }
+                \label{tab:table example}
+            \end{table}
     
 \sectionnonum{Rezultatai ir išvados}
 Gausesni transformuotų nuotraukų pavyzdžiai yra prisegti priedų skiltyje.
 
 Modelis pasiekęs žemiausią FID (145) yra MSPC V2. 
 
-Modelis, kurio transformuotuose vaizduose aptinkama daugiausia automobilių (3,9~\%) yra MSPC V2.
+Modelis, kurio transformuotuose vaizduose aptinkama daugiausia automobilių (54,2~\%) yra ControlNet.
 
-Vaizdų transformavimas buvo įgyvendintas iki tokio lygio, kad galima nesunkiai atpažinti transformuoto vaizdo domeną, tačiau yra vietų, kurias tobulinti reikėtų, pagrindinė iš jų: nuotraukų semantinio turinio išlaikymas (paros metas, automobiliai). Modeliai dažnai panaikina automobilius iš transformuojamų nuotraukų, tačiau gerai sugeba transformuoti kelius, dangų ir gamtinius objektus.
+Modelis pasiekęs aukščiausią SSIM įvertį (0,7116) yra CycleDiffusion.
+
+Vaizdų transformavimas buvo įgyvendintas iki tokio lygio, kad galima nesunkiai atpažinti transformuoto vaizdo domeną, tačiau GAN modeliai kenčia nuo architektūrinių problemų neleidžiančių jiems išlaikyti tam tikro turinio tokiame plačios apimties uždavinyje, o difuzijos modeliams neužtenka bendro mokymo spręsti tokiam uždaviniui. Modeliai dažnai panaikina automobilius iš transformuojamų nuotraukų ir gerai sugeba transformuoti kelius, dangų ir gamtinius objektus arba gerai išlaiko transformuojamo turinio detales, bet nuotrauka būna transformuojama per stipriai arba per mažai.
 Tyrimo išvados:
 \begin{enumerate}
-    \item Kokybiškiausius rezultatus duodantis modelis yra MSPC.
+    \item Kokybiškiausius rezultatus duodantys modeliai yra MSPC ir ControlNet.
     \item Duomenų rinkinių struktūriniai ir objektų dažnumo skirtumai stipriai įtakoja nuotraukų transformavimo kokybę.
-    \item Didesnis FID įvertis nebūtinai reiškia kokybiškesnį nuotraukos turinio išlaikymą.
+    \item Žemesnis FID įvertis ir didesnis SSIM įvertis nebūtinai reiškia kokybiškesnį nuotraukos turinio išlaikymą.
 \end{enumerate}
 
 \sectionnonum{Santrumpos}
@@ -412,14 +567,12 @@ Tyrimo išvados:
     \item \textbf{SSIM} – angl. \emph{Structural similarity index} – struktūrinis panašumas, metrika naudojama įvertinti generatyvių modelių kokybę.
 \end{enumerate}
 
-    
-
 \printbibliography[heading=bibintoc]
 
 \appendix
 
 \section{Darbo saugykla}
-    Darbo saugykla su duomenų rinkiniu, pavyzdinėmis nuotraukomis ir gautais modeliais yra pasiekiama nuoroda: \href{https://github.com/0ksas/bachelors}.
+    Darbo saugykla su duomenų rinkiniu, pavyzdinėmis nuotraukomis ir gautais modeliais yra pasiekiama nuoroda: \href{https://github.com/0ksas/bachelors}{https://github.com/0ksas/bachelors}.
 
 
 \section{Pirminių modelių (CycleGAN, CUT, MSPC) nuotraukų pavyzdžiai (pirmosios duomenų rinkinio iteracijos)}
@@ -430,28 +583,28 @@ Tyrimo išvados:
         {\begin{tabular}{|c|c|c|c|} \hline
             Originali nuotrauka & CycleGAN  & CUT  & MSPC\\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/1_real} & 
-            \includegraphics[scale=0.35]{img/pvz/1_cycle} & \includegraphics[scale=0.35]{img/pvz/1_cut} & \includegraphics[scale=0.35]{img/pvz/1_mspc}
+            \includegraphics[width=100,height=85]{img/pvz/1_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/1_cycle} & \includegraphics[width=100,height=85]{img/pvz/1_cut} & \includegraphics[width=100,height=85]{img/pvz/1_mspc}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/3_real} & 
-            \includegraphics[scale=0.35]{img/pvz/3_cycle} & \includegraphics[scale=0.35]{img/pvz/3_cut} & \includegraphics[scale=0.35]{img/pvz/3_mspc}
+            \includegraphics[width=100,height=85]{img/pvz/3_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/3_cycle} & \includegraphics[width=100,height=85]{img/pvz/3_cut} & \includegraphics[width=100,height=85]{img/pvz/3_mspc}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/4_real} & 
-            \includegraphics[scale=0.35]{img/pvz/4_cycle} & \includegraphics[scale=0.35]{img/pvz/4_cut} & \includegraphics[scale=0.35]{img/pvz/4_mspc}
+            \includegraphics[width=100,height=85]{img/pvz/4_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/4_cycle} & \includegraphics[width=100,height=85]{img/pvz/4_cut} & \includegraphics[width=100,height=85]{img/pvz/4_mspc}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/5_real} & 
-            \includegraphics[scale=0.35]{img/pvz/5_cycle} & \includegraphics[scale=0.35]{img/pvz/5_cut} & \includegraphics[scale=0.35]{img/pvz/5_mspc}
+            \includegraphics[width=100,height=85]{img/pvz/5_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/5_cycle} & \includegraphics[width=100,height=85]{img/pvz/5_cut} & \includegraphics[width=100,height=85]{img/pvz/5_mspc}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/6_real} & 
-            \includegraphics[scale=0.35]{img/pvz/6_cycle} & \includegraphics[scale=0.35]{img/pvz/6_cut} & \includegraphics[scale=0.35]{img/pvz/6_mspc}
+            \includegraphics[width=100,height=85]{img/pvz/6_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/6_cycle} & \includegraphics[width=100,height=85]{img/pvz/6_cut} & \includegraphics[width=100,height=85]{img/pvz/6_mspc}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/7_real} & 
-            \includegraphics[scale=0.35]{img/pvz/7_cycle} & \includegraphics[scale=0.35]{img/pvz/7_cut} & \includegraphics[scale=0.35]{img/pvz/7_mspc}
+            \includegraphics[width=100,height=85]{img/pvz/7_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/7_cycle} & \includegraphics[width=100,height=85]{img/pvz/7_cut} & \includegraphics[width=100,height=85]{img/pvz/7_mspc}
             \\
             \hline
             \end{tabular}
@@ -466,32 +619,122 @@ Tyrimo išvados:
         {\begin{tabular}{|c|c|c|c|} \hline
             Originali nuotrauka & CycleGAN V2  & CUT V2  & MSPC V2\\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/1_real} & 
-            \includegraphics[scale=0.35]{img/pvz/1_cycle_v2} & \includegraphics[scale=0.35]{img/pvz/1_cut_v2} & \includegraphics[scale=0.35]{img/pvz/1_mspc_v2}
+            \includegraphics[width=100,height=85]{img/pvz/1_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/1_cycle_v2} & \includegraphics[width=100,height=85]{img/pvz/1_cut_v2} & \includegraphics[width=100,height=85]{img/pvz/1_mspc_v2}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/3_real} & 
-            \includegraphics[scale=0.35]{img/pvz/3_cycle_v2} & \includegraphics[scale=0.35]{img/pvz/3_cut_v2} & \includegraphics[scale=0.35]{img/pvz/3_mspc_v2}
+            \includegraphics[width=100,height=85]{img/pvz/3_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/3_cycle_v2} & \includegraphics[width=100,height=85]{img/pvz/3_cut_v2} & \includegraphics[width=100,height=85]{img/pvz/3_mspc_v2}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/4_real} & 
-            \includegraphics[scale=0.35]{img/pvz/4_cycle_v2} & \includegraphics[scale=0.35]{img/pvz/4_cut_v2} & \includegraphics[scale=0.35]{img/pvz/4_mspc_v2}
+            \includegraphics[width=100,height=85]{img/pvz/4_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/4_cycle_v2} & \includegraphics[width=100,height=85]{img/pvz/4_cut_v2} & \includegraphics[width=100,height=85]{img/pvz/4_mspc_v2}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/5_real} & 
-            \includegraphics[scale=0.35]{img/pvz/5_cycle_v2} & \includegraphics[scale=0.35]{img/pvz/5_cut_v2} & \includegraphics[scale=0.35]{img/pvz/5_mspc_v2}
+            \includegraphics[width=100,height=85]{img/pvz/5_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/5_cycle_v2} & \includegraphics[width=100,height=85]{img/pvz/5_cut_v2} & \includegraphics[width=100,height=85]{img/pvz/5_mspc_v2}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/6_real} & 
-            \includegraphics[scale=0.35]{img/pvz/6_cycle_v2} & \includegraphics[scale=0.35]{img/pvz/6_cut_v2} & \includegraphics[scale=0.35]{img/pvz/6_mspc_v2}
+            \includegraphics[width=100,height=85]{img/pvz/6_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/6_cycle_v2} & \includegraphics[width=100,height=85]{img/pvz/6_cut_v2} & \includegraphics[width=100,height=85]{img/pvz/6_mspc_v2}
             \\
             \hline
-            \includegraphics[scale=0.35]{img/pvz/7_real} & 
-            \includegraphics[scale=0.35]{img/pvz/7_cycle_v2} & \includegraphics[scale=0.35]{img/pvz/7_cut_v2} & \includegraphics[scale=0.35]{img/pvz/7_mspc_v2}
+            \includegraphics[width=100,height=85]{img/pvz/7_real} & 
+            \includegraphics[width=100,height=85]{img/pvz/7_cycle_v2} & \includegraphics[width=100,height=85]{img/pvz/7_cut_v2} & \includegraphics[width=100,height=85]{img/pvz/7_mspc_v2}
             \\
             \hline
             \end{tabular}
         }
         \label{tab:table example}
     \end{table}
+\section{Difuzijos modelių nuotraukų pavyzdžiai}
+    \begin{table}[H]
+        \footnotesize
+        \centering
+        \caption{Transformuojamų nuotraukų ir difuzijos modelių rezultatų pavyzdžiai}
+        {\begin{tabular}{|c|c|c|c|} \hline
+            Originali nuotrauka & ControlNet-Set & InstructPix2Pix  & CycleDiffusion \\
+            \hline
+            \includegraphics[width=100,height=85]{img/original/7a0ba545-3961a92c} & 
+            \includegraphics[width=100,height=85]{img/diffusion/controlnet/7a0ba545-3961a92c} & 
+            \includegraphics[width=100,height=85]{img/diffusion/cycle/7a0ba545-3961a92c} & 
+            \includegraphics[width=100,height=85]{img/diffusion/instruct/7a0ba545-3961a92c} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7c0a7d5a-da928c23} & 
+            \includegraphics[width=100,height=85]{img/diffusion/controlnet/7c0a7d5a-da928c23} & 
+            \includegraphics[width=100,height=85]{img/diffusion/cycle/7c0a7d5a-da928c23} & 
+            \includegraphics[width=100,height=85]{img/diffusion/instruct/7c0a7d5a-da928c23} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7c9cf422-f19cd065} & 
+            \includegraphics[width=100,height=85]{img/diffusion/controlnet/7c9cf422-f19cd065} & 
+            \includegraphics[width=100,height=85]{img/diffusion/cycle/7c9cf422-f19cd065} & 
+            \includegraphics[width=100,height=85]{img/diffusion/instruct/7c9cf422-f19cd065} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7c302d09-d4da21c8} & 
+            \includegraphics[width=100,height=85]{img/diffusion/controlnet/7c302d09-d4da21c8} & 
+            \includegraphics[width=100,height=85]{img/diffusion/cycle/7c302d09-d4da21c8} & 
+            \includegraphics[width=100,height=85]{img/diffusion/instruct/7c302d09-d4da21c8} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7c2090bd-7b48705f} & 
+            \includegraphics[width=100,height=85]{img/diffusion/controlnet/7c2090bd-7b48705f} & 
+            \includegraphics[width=100,height=85]{img/diffusion/cycle/7c2090bd-7b48705f} & 
+            \includegraphics[width=100,height=85]{img/diffusion/instruct/7c2090bd-7b48705f} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7cf55c3d-9cbeb7c6} & 
+            \includegraphics[width=100,height=85]{img/diffusion/controlnet/7cf55c3d-9cbeb7c6} & 
+            \includegraphics[width=100,height=85]{img/diffusion/cycle/7cf55c3d-9cbeb7c6} & 
+            \includegraphics[width=100,height=85]{img/diffusion/instruct/7cf55c3d-9cbeb7c6} \\
+            \hline
+            \end{tabular}
+        }
+        \label{tab:table example}
+    \end{table}
+
+\section{MSPC Car modelio nuotraukų pavyzdžiai}
+    \begin{table}[H]
+        \footnotesize
+        \centering
+        \caption{Transformuojamų nuotraukų ir difuzijos modelių rezultatų pavyzdžiai}
+        {\begin{tabular}{|c|c|c|c|} \hline
+            Originali nuotrauka & MSPC V2 & MSPC Car \\
+            \hline
+            \includegraphics[width=100,height=85]{img/original/7c23993b-00000000} & 
+            \includegraphics[width=100,height=85]{img/mspcv2/7c23993b-00000000} & 
+            \includegraphics[width=100,height=85]{img/mspccar/7c23993b-00000000} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7ccd7466-426b0001} & 
+            \includegraphics[width=100,height=85]{img/mspcv2/7ccd7466-426b0001} & 
+            \includegraphics[width=100,height=85]{img/mspccar/7ccd7466-426b0001} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7ce33243-6db43a7e} & 
+            \includegraphics[width=100,height=85]{img/mspcv2/7ce33243-6db43a7e} & 
+            \includegraphics[width=100,height=85]{img/mspccar/7ce33243-6db43a7e} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7cf55c3d-9cbeb7c6} & 
+            \includegraphics[width=100,height=85]{img/mspcv2/7cf55c3d-9cbeb7c6} & 
+            \includegraphics[width=100,height=85]{img/mspccar/7cf55c3d-9cbeb7c6} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7cf55c3d-19556e52} & 
+            \includegraphics[width=100,height=85]{img/mspcv2/7cf55c3d-19556e52} & 
+            \includegraphics[width=100,height=85]{img/mspccar/7cf55c3d-19556e52} \\
+            \hline
+            \\
+            \includegraphics[width=100,height=85]{img/original/7d24a7cd-daeaf356} & 
+            \includegraphics[width=100,height=85]{img/mspcv2/7d24a7cd-daeaf356} & 
+            \includegraphics[width=100,height=85]{img/mspccar/7d24a7cd-daeaf356} \\
+            \hline
+            \end{tabular}
+        }
+        \label{tab:table example}
+    \end{table}
+
 \end{document}

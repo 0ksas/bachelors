@@ -59,23 +59,23 @@
 \maketitle
 \setcounter{page}{2}
 
-\sectionnonumnocontent{Santrauka}
-    Pristatomas metodas vaizdo žaidimo eismo nuotraukų generavimui pasitelkiant porą generatyvinių adversarinių tinklų ir vaizdo segmentavimo modelį, taip sukuriant metodą sugebantį transformuoti nuotrauką į norimą domeną išsaugant norimos domeno klasės detales. Šiame straipsnyje aprašoma, kaip šiuo būdu galima transformuoti realaus eismo nuotrauką iš į vaizdo žaidimo eismo nuotrauką, atskirai transformuojant svarbiausią objektų klasę - automobilius. Papildomai, rezultatai yra palyginami su jau naujais ir jau apmokytais difuzijos modeliais.
+\sectionnonum{Santrauka}
+    Pristatomas metodas vaizdo žaidimo eismo nuotraukų generavimui pasitelkiant porą generatyvinių adversarinių tinklų ir vaizdo segmentavimo modelį, taip sukuriant metodą sugebantį transformuoti nuotrauką į norimą domeną išsaugant norimos domeno klasės detales. Šiame straipsnyje aprašoma, kaip šiuo būdu galima transformuoti realaus eismo nuotrauką į vaizdo žaidimo eismo nuotrauką, atskirai transformuojant svarbiausią objektų klasę - automobilius. Papildomai, rezultatai yra palyginami su naujais iš anksto apmokytais difuzijos modeliais.
 
     Gautas metodas nors ir sugeba tam tikrais atvejais sugeneruoti kokybiškesnę nuotrauką nei pavienis GAN modelis, tačiau yra mažiau stabilus ir gauna prastesnius įverčius. Difuzijos modeliai generuoja švaresnį vaizdą ir daug geriau išsaugo detales, tačiau arba per stipriai pakeičia vaizdą, arba jį pakeičia per mažai.
 
     \raktiniaizodziai{Generatyviniai adversariniai tinklai, segmentavimo modelis, difuzijos modeliai, realaus eismo vaizdai, vaizdo žaidimų eismo vaizdai}
 
-\sectionnonumnocontent{Summary}
-    A method of generating video game traffic images is presented, using a pair of generative adverserial networks and an image segmentation model, thus creating a methos capable of transforming the image to the desired domain while preserving the details of domain's the most important details. In this paper it is described how using this method is it possible to transform images from a real traffic domain into a video game traffic domain while separately transforming it's most important image class - cars. Additionally, results are compared against new and pretrained diffusion models.
+\sectionnonum{Summary}
+    A method of generating video game traffic images is presented, using a pair of generative adverserial networks and an image segmentation model, thus creating a methos capable of transforming the image to the desired domain while preserving the details of domain's the most important details. In this paper it is described how using this method is it possible to transform images from a real traffic domain into a video game traffic domain while separately transforming it's most important image class - cars. Additionally, results are compared against recently released pretrained diffusion models.
 
-    The created method while capable of generating better images than a standalone GAN under certain conditions, it is less stable and is worse by evaluation metrics. While diffusion models generate images with much less noise and preserve details much better, they tend to either change the content too much or barely at all. 
+    The created method, while capable of generating better images than a standalone GAN under certain conditions, is less stable and is worse by evaluation metrics. While diffusion models generate images with much less noise and preserve details much better, they tend to either change the content too much or barely change it at all. 
     \keywords{Generative adverserial networks, diffusion models, segmentation model, real traffic images, video game traffic images}
     
 
 \tableofcontents
 
-\sectionnonumnocontent{Padėka už HPC išteklius}
+\sectionnonum{Padėka už HPC išteklius}
     Darbo autorius dėkoja Vilniaus universiteto Matematikos ir informatikos fakulteto Informacinių technologijų atviros prieigos centrui už suteiktus HPC išteklius šio darbo tyrimams atlikti. 
 
 \sectionnonumnocontent{Įvadas}
@@ -113,7 +113,7 @@
     
             Tyrimo straipsnyje yra vaizduojama, kaip modelis sugeba transformuoti vaizdus tarp realių domenų (pavyzdžiui, iš arklio į zebrą ir iš zebro į arklį) ir tarp ne nerealistinių ir realių (pavyzdžiui, iš kraštovaizdžio nuotraukų į Monet paveikslus ir atvirškčiai). Tarp dviejų nerealistinių domenų pavyzdžių nėra, tačiau galima nuspėti, jog su kokybišku apmokymo procesu ir duomenų rinkiniu tokį uždavinį taip pat nesunkiai įveiktų.
     
-            Nors modelis dirbtinių neuroninių tinklų srityje jau yra lygintinai  senas, tačiau dėl jo kodo realizacijos prieinamumo ir architektūros paprastumo yra vertas dėmesio ir laiko.
+            Nors modelis yra senesnis nei dauguma šiuo metu populiarių nuotraukų transformavimo modelių architektūrų, tačiau dėl jo kodo realizacijos prieinamumo ir architektūros paprastumo yra vertas dėmesio ir laiko.
             
         \subsubsection{CUT modelis}
             Antras iš trijų naudotų modelių yra CUT (angl. \emph{contrastive unpaired translation} – kontrastyvi neporuota transformacija), išleistas 2020 metais. Pagrindinis jo bruožas yra, jog jis yra pritaikytas mokymui su nesuporuotais duomenų rinkiniais (t.y. nuotraukai iš domeno A, nėra tiesioginio atitikmens iš domeno B). Kitaip nei CycleGAN, CUT mokymas ir nuotraukų transformavimas vykdomas tik į vieną pusę, tai reiškia, kad norint nuotraukas transformuoti iš domeno A į domeną B ir iš domeno B į domeną A, yra reikalingi du atskirai išmokyti modeliai. Dėl vienpusio nuotraukų transformavimo, mokymo procedūra yra supaprastinama ir paspartinama. Šio modelio tikslas yra transformuojant perimti norimo domeno išvaizdą, bet išlaikyti transformuojamos nuotraukos struktūrą ir esminį turinį. Būtent ši CUT modelio savybė tuo pačiu yra šio modelio didžiausia stiprioji ir silpnoji vieta  transformuojant nuotraukas kai kuriuose domenuose, kadangi jei apmokant modelį yra dažnai pasitaikančių artefaktų, tai jie gali dažnai atsikartoti ir transformuojamose nuotraukose, tai yra pabrėžiama „Enhancing Photorealism Enhancement“ \cite{EnPhEn} straipsnyje, kur transformuojant GTA V vaizdus, CUT modelis dažnai ant žaidėjo automobilio variklio dangčio uždėdavo Mercedes žvaigždę, kuri beveik visados matoma Cityscapes duomenų rinkinyje \cite{DaimCityDaSe}, kuriuo ir buvo mokinti modeliai.
@@ -137,7 +137,7 @@
         Kol kas šie modeliai pritaikyti mokyti tik suporuotų duomenų rinkiniams, todėl toliau modelių mokymo galimybės ir aspektai nėra minimi. 
         
         \subsubsection{ControlNet-seg modelis}
-            Pirmas panaudotas difuzijos modelis yra ControlNet-Seg \cite{ControlNetSeg} modelis, pristatytas 2023 metais ir yra ControlNet modelio \cite{ControlNet} versija, kuri transformuoja nuotrauką remiantis segmentavimo rezultatais, t.y. pradžioje nuotrauka yra segmentuojama ir pagal gautas kaukes, skirtingos vietos yra transformuojamos skirtingai, išlaikant kiekvienos klasės turinį (žr. \ref{fig:mask} pav.).
+            Pirmas panaudotas difuzijos modelis yra ControlNet-Seg modelis, pristatytas 2023 metais ir yra ControlNet modelio \cite{ControlNet} versija, kuri transformuoja nuotrauką remiantis segmentavimo rezultatais, t.y. pradžioje nuotrauka yra segmentuojama ir pagal gautas kaukes, skirtingos vietos yra transformuojamos skirtingai, išlaikant kiekvienos klasės turinį (žr. \ref{fig:mask} pav.).
 
             \begin{figure}[H]
                 \centering
@@ -195,11 +195,11 @@
             Vaizdo įrašai apdoroti Python kalbos skriptu, konvertuojančiu vaizdo įrašą į atskiras kadrų nuotraukas, taip sudarydamas GTA:VC vaizdų duomenų rinkinį sudarytą iš 2000 nuotraukų, o jo antrą versiją iš 2300.
         
         \subsubsection{Automobilių duomenų rinkinys}
-            Apmokius pirminius modelius, buvo pastebėta, kad dingsta automobiliai ir nors vaizdo žaidimo duomenų rinkinys buvo papildytas nuotraukomis, kuriose yra automobilių, rezultatai vis dar buvo prasti. Dėl šios priežasties buvo nuspręsta kurti atskirą modelį, transformuojantį tik nuotraukas, kuriose yra automobiliai, t.y. viskas kas nėra automobilis - lieka paverčiama permatoma. Tam pasirinktas \emph{PNG} nuotraukų formatas, kuris sudarytas iš 4 kanalų - raudona, žalia, mėlyna ir permatomumo (dar vadinama \emph{alpha} kanalu).
+            Apmokius pirminius modelius, buvo pastebėta, kad dingsta automobiliai ir nors vaizdo žaidimo duomenų rinkinys buvo papildytas nuotraukomis, kuriose yra automobilių, rezultatai vis dar buvo prasti. Dėl šios priežasties buvo nuspręsta kurti atskirą modelį, transformuojantį tik nuotraukas, kuriose yra automobiliai, t.y. viskas kas nepriklauso automobilių klasei - lieka paverčiama permatoma. Tam pasirinktas \emph{PNG} nuotraukų formatas, kuris sudarytas iš 4 kanalų - raudona, žalia, mėlyna ir permatomumo (dar vadinama \emph{alpha} kanalu).
 
-            Šio duomenų rinkinio generavimui buvo pasitelkti atsisiųstas BDD100K ir surinktas GTA:VC duomenų rinkiniai bei nuotraukų segmentavimo modelis. Buvo pasirinktas DeepLabV3 segmentacijos modelis su ResNet-101 pagrindu, prieinamas Pytorch segmentacijos modelių bibliotekoje. Pagal numatytus nustatymus, šis modelis atsisiunčiamas jau apmokytas naudojant Coco 2017 duomenų rinkinį \cite{CocoDataset}.
+            Šio duomenų rinkinio generavimui buvo pasitelkti atsisiųstas BDD100K ir surinktas GTA:VC duomenų rinkiniai bei nuotraukų segmentavimo modelis. Buvo pasirinktas DeepLabV3 segmentacijos modelis su ResNet-101 pagrindu, prieinamas PyTorch segmentacijos modelių bibliotekoje. Pagal numatytus nustatymus, šis modelis atsisiunčiamas jau apmokytas naudojant COCO 2017 duomenų rinkinį \cite{CocoDataset}.
 
-            Duomenų rinkinys buvo generuojamas skaitant kiekvieną nuotrauką ir ją praleidžiant pro segmentavimo modelį. Iš visų klasių, paimami buvo tik automobilių klasės segmentacijos rezultatai, kurie nurodė kiekvienam pikseliui tikimybę, jog jame yra atvaizduojamas automobilis. Tam, kad pikselis būtų pilnos reikšmės, arba jis būtų visiškai permatomas, reikėjo suapvalinti kiekvieno pikselio tikimybę į 1 arba 0. 0,5 reikšmė gavosi per maža ir automobilių nuotraukose gavosi dideli tarpai tuštumos, dėl to pasirinkta buvo 0,25 reikšmė, kuri suteikia pilnesnį automobilių vaizdą (žr. \ref{img:real_masked} pav.). Gauta kaukė yra panaudojama kaip \emph{alpha} kanalo reikšmė nuotraukai, taip paverčiant pikselius, kuriuose spėjama, jog nėra automobilio, permatomais.
+            Duomenų rinkinys buvo generuojamas skaitant kiekvieną nuotrauką ir ją praleidžiant pro segmentavimo modelį. Iš visų klasių, paimami buvo tik automobilių klasės segmentacijos rezultatai, kurie nurodė kiekvienam pikseliui tikimybę, jog jame yra atvaizduojamas automobilis. Tam, kad pikselis būtų pilnos reikšmės, arba jis būtų visiškai permatomas, reikėjo suapvalinti kiekvieno pikselio tikimybę į 1 arba 0. 0,5 slenkstinė reikšmė gavosi per maža ir automobilių nuotraukose gavosi dideli tarpai tuštumos, dėl to pasirinkta buvo 0,25 reikšmė, kuri suteikia pilnesnį automobilių vaizdą (žr. \ref{img:real_masked} pav.). Gauta kaukė yra panaudojama kaip \emph{alpha} kanalo reikšmė nuotraukai, taip paverčiant pikselius, kuriuose spėjama, jog nėra automobilio, permatomais.
 
             Tas pats procesas buvo pritaikytas ir žaidimo vaizdams maskuoti. Šis modelis apmokytas realiomis nuotraukomis gan gerai įveikė užduotį ir gavosi patenkinamos kokybės nuotraukos (žr. \ref{img:vice_masked} pav.). Daug nuotraukų gavosi tuščios, t.y. be automobilių ir dėl to tapo juodos, arba labai prastos kokybės su iškirptomis automobilių dalimis arba nereikalingais artefaktais, dėl šių priežasčių daug nuotraukų teko ištrinti ir duomenų rinkinys sumažėjo nuo 6893 iki 2474 nuotraukų realiam domenui ir nuo 2279 iki 410 nuotraukų žaidimo domenui.
 
@@ -220,7 +220,7 @@
     \subsection{Mokymo platformos}
         Paruošus modelius, jie buvo mokomi VU MIF superkompiuteriu. Mokoma buvo naudojant Linux Ubuntu operacinę sistemą (20.04 versiją) su PyTorch karkasu, pasitelkiant superkompiuterio Nvidia DGX-1 stotį, kurią sudaro keturios Nvidia Tesla V100 vaizdo plokštės.
     \subsection{Pirminių modelių mokymas}
-        Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
+        Pirminiam mokymui buvo išrinkti trys modeliai: CycleGAN\footnote{CycleGAN kodo realizacija pasiekiama nuoroda – \href{https://github.com/junyanz/PyTorch-CycleGAN-and-pix2pix}{https://github.com/junyanz/PyTorch-CycleGAN-and-pix2pix}}, CUT\footnote{CUT modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/taesungp/contrastive-unpaired-translation}{https://github.com/taesungp/contrastive-unpaired-translation}} ir MSPC\footnote{MSPC modelio kodo realizacija pasiekama nuoroda – \href{https://github.com/batmanlab/MSPC}{https://github.com/batmanlab/MSPC}}. Kadangi CUT ir MSPC kodo implementacija yra sukurta CycleGAN modelio realizacijos programinio kodo pagrindu, tiek duomenų rinkinio, tiek pačio mokymo proceso keisti drastiškai nereikėjo. Parinkti modeliai nebuvo modifikuoti ar kaip nors kitaip keisti.
 
         Kiekvienas modelis buvo mokomas 100 epochų su vientisu mokymo greičiu (0.0002) ir 35 epochomis tiesišku mokymosi greičio nykimu (angl. \emph{decay}).  Kiekvienas modelis buvo apmokytas du kartus, vieną kartą su pirmąja GTA:VC eismo vaizdų duomenų rinkiniu, o antrą kartą su antrąja jo versija, todėl iš viso yra kiekvieno modelio dvi versijos vadinamos V1 ir V2, pavyzdžiui, CUT V1 ir CUT V2. Mokymosi greitis yra apskaičiuojama pagal šią formulę:
         \[ lr = 2\times10^{-4} \times \frac{ max(0, ep - ep_n)}{ep_d + 1},\] čia $ep$ – einamoji epocha, $ep_{n}$ – epochų kiekis, $ep_{d}$ – nykimo epochų kiekis.
@@ -332,7 +332,7 @@
     \subsection{Modifikuoto MSPC modelio kūrimas ir mokymas}
         Po pirminių modelių mokymo rezultatų, buvo pastebėta, kad dingsta daug automobilių ir dėl to buvo nuspręsta sukurti metodą, sugebantį išskirti automobilius iš nuotraukos, juos transformuoti atskirai nuo bendro turinio ir po to gautą rezultatą įklijuoti į transformuotą nuotrauką, šis modelis toliau vadinamas „MSPC Car“. Kadangi po pirminių mokymų geriausius rezultatus davė MSPC modelis, todėl naujam metodui buvo pasirinktas būtent šis modelis. MSPC modelis transformuojantis bendrą vaizdą buvo pirminiame eksperimente apmokytas MSPC V2 modelis, o modelis transformuojantis tik automobilius buvo minimaliai modifikuotas MSPC modelis. Buvo atliktos dvi modifikacijos: pridėtas ketvirtasis įvesties bei išvesties kanalas ir papildyta paklaidos formulė. 
         
-        Pagal kodą, modelis palaiko tik du rėžimus - spalvotas ir juodai baltas spalvas. Šį modelį reikėjo pritaikyti transformacijai nuotraukų su permatomumo sluoksniu, tam kode reikėjo modifikuoti nuotraukos apdorojimo prieš paduodant modeliui funkcijas bei įvesties ir išvesties sluoksnius, kad palaikytų 4 dimensijų aibes. 
+        Pagal numatytą kodą, modelis palaiko tik du rėžimus - spalvotas ir juodai baltas nuotraukas. Šį modelį reikėjo pritaikyti transformacijai nuotraukų su permatomumo sluoksniu, tam kode reikėjo modifikuoti nuotraukos apdorojimo prieš paduodant modeliui funkcijas bei įvesties ir išvesties sluoksnius, kad palaikytų 4 dimensijų aibes. 
         
         Antroji modifikacija buvo atlikta po to, kai buvo pastebėta, jog transformuotos nuotraukos dažnai prarado turinį (t.y. toje vietoje, kur buvo automobilis, staiga ta vieta tapo permatoma) arba atsirado turinio, kur prieš tai buvo tuščia vieta. Ši paklaidos skaičiavimo formulė yra paprasta kvadratinės paklaidos formulė ir jos rezultatas pridedamas prie bendros paklaidos. Ši papildoma paklaida skirta „nubausti“ modelį už matomo turinio vietos keitimą.
 
@@ -360,12 +360,12 @@
 
     
     \subsection{Panaudoti iš anksto apmokyti difuzijos modeliai}
-        Buvo panaudoti 3 difuzijos modeliai: ControlNet-Seg, InstructPix2Pix ir CycleDiffusion modeliai. Jie visi trys veikia skirtingai ir duoda unikalius rezultatus. Jų tikslesnis veikimas aprašytas pirmo skyriaus antrame poskyryje. Šie modeliai nebuvo apmokomi, o buvo naudoti jau apmokyti (angl. \emph{pre-trained}).
+        Buvo panaudoti 3 difuzijos modeliai: ControlNet-Seg, InstructPix2Pix ir CycleDiffusion. Jie visi trys veikia skirtingai ir duoda unikalius rezultatus. Jų tikslesnis veikimas aprašytas pirmo skyriaus antrame poskyryje. Šie modeliai nebuvo apmokomi, o buvo naudoti jau apmokyti (angl. \emph{pre-trained}).
 
         Visi šie modeliai buvo panaudoti su testavimo duomenų rinkiniu.
 
         \subsubsection{ControlNet-Seg modelis}
-            Šis modelis atspindi tai, koks buvo MSPC Car modelio tikslas, nors rezultatai nėra tokie, kokių buvo siekta su MSPC Car modeliu. Kaip minėta modelių apžvalgos skyriuje, šis modelis transformuoja remiantis segmentacijos kaukėmis, taip žinantis kurią dalį kaip transformuoti. Tai suteikia korektiškesnį turinio išlaikymą ir mažesnį semantinį nuokrypį.
+            Šis modelis atspindi tai, koks buvo MSPC Car modelio tikslas (transformuoti remiantis turinio klase), nors rezultatai nėra tokie, kokių buvo siekta su MSPC Car modeliu. Kaip minėta modelių apžvalgos skyriuje, šis modelis transformuoja remiantis segmentacijos kaukėmis, taip žinantis kurią dalį kaip transformuoti. Tai suteikia korektiškesnį turinio išlaikymą ir mažesnį semantinį nuokrypį.
 
             Šis modelis buvo panaudotas naudojant žiniatinklio paslaugą (angl. \emph{API}) prieinamą puslapio nuorodoje \href{https://replicate.com/jagilley/controlnet-seg}{https://replicate.com/jagilley/controlnet-seg}. Joje suteikiamas limituotas kiekis nemokamų užklausų ir vėliau užklausos tampa mokamos.
 
@@ -438,15 +438,15 @@ edited_image.save("output.jpg")
             \end{figure}
             
     \subsection{Modelių vertinimo metrikos}
-        Modelių nuotraukų transformavimo gebėjimams vertinti buvo pasirinktos trys metrikos: FID ir SSIM, šie trumpiniai atitinkamai reiškia Fréchet pradžios atstumas (angl. \emph{Fréchet inception distance}) ir struktūrinis panašumas (angl. \emph{structural similarity index}).
+        Modelių nuotraukų transformavimo gebėjimams vertinti buvo pasirinktos dvi metrikos: FID ir SSIM, šie trumpiniai atitinkamai reiškia Fréchet pradžios atstumas (angl. \emph{Fréchet inception distance}) ir struktūrinis panašumas (angl. \emph{structural similarity index}).
         
         \subsubsection{FID}
             Pirmoji pasirinkta metrika modelių nuotraukų turinio transformavimo kokybei vertinti buvo FID, dažniausiai naudojama vertinti modelių generuojamų nuotraukų kokybei. Šia metrika apskaičiuojamas atstumas tarp realių ir sugeneruotų nuotraukų požymių vektorių.
     
-            Šis įvertis parodo, kaip nuotraukos iš dviejų grupių yra struktūriškai panašios. Žemesnis įvertis reiškia kokybiškesnes nuotraukas, o didelis – prastesnes. FID metrika pirmą kartą pristatyta ir panaudota 2017 metais Linco Johaneso Keplerio universiteto tyrimo straipsnyje pavadinimu „GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium“ \cite{FidStart}. Šis įvertis pristatytas kaip geresnė metrika vietoj pradžios įverčio (angl. \emph{inception score}, trumpinama IS), kadangi IS vertina tik sugeneruotų nuotraukų kokybę, tačiau FID vertina sugeneruotų nuotraukų kokybę lyginant su šaltinio domeno duomenų rinkiniu.
+            Šis įvertis parodo, kaip nuotraukos iš dviejų grupių yra struktūriškai panašios. Žemesnis įvertis reiškia kokybiškesnes nuotraukas, o didelis – prastesnes. FID metrika pirmą kartą pristatyta ir panaudota 2017 metais Linco Johaneso Keplerio universiteto tyrimo straipsnyje pavadinimu „GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium“ \cite{FidStart}. Šis įvertis pristatytas kaip geresnė metrika vietoj pradžios įverčio (angl. \emph{inception score}, trumpinama IS), kadangi IS vertina tik sugeneruotų nuotraukų kokybę, o FID metrika vertina sugeneruotų nuotraukų kokybę lyginant su šaltinio domeno duomenų rinkiniu.
 
         \subsubsection{SSIM}
-            SSIM \cite{SSIM} yra antroji pasirinkta metrika modelių vertinimui. Tai yra metrika skirta įvertinti panašumą tarp dviejų nuotraukų. Šiuo atveju, tai buvo vidurkis tarp visų transformuotų nuotraukų ir jų originalų (angliškai dar vadinamais \emph{ground truth}). Ši metrika apskaičiuoja įvertį pagal tris pagrindinius punktus: struktūra, kontrastas ir apšvietimas.
+            SSIM \cite{SSIM} yra antroji pasirinkta metrika modelių vertinimui. Tai yra metrika skirta įvertinti panašumą tarp dviejų nuotraukų. Šiuo atveju, tai buvo vidurkis tarp visų transformuotų nuotraukų ir jų originalų (angliškai dar vadinama \emph{ground truth}). Ši metrika apskaičiuoja įvertį pagal tris pagrindinius punktus: struktūra, kontrastas ir apšvietimas.
 
             Šios metrikos įverčių ribos yra nuo 0 iki 1, kas reiškia panašumą tarp dviejų nuotraukų (ar vidurkį tarp dviejų duomenų rinkinių). 0 reiškia, kad nuotraukos visiškai nepanašios, o 1 - labai panašios arba vienodos.
 
@@ -464,8 +464,12 @@ edited_image.save("output.jpg")
 % CycleGAN v2 148 \ 14.61 \ 0.622627881117482
 % CUT V2 185 \ 13.41 \ 0.5090844693307679
     \subsection{Gauti įverčiai}
+        Šiame skyriuje pristatomi rezultatai gauti apmokius CycleGAN, CUT, MSPC modelius su pirmąja ir antrąja duomenų rinkinio iteracija, apmokius ir sukūrus MPSC Car metodą ir panaudojus apmokytus CycleDiffusion, ControlNet-Seg ir InstructPix2Pix difuzijos modelius. 
         \subsubsection{FID įverčiai}
             Apmokius modelius buvo apskaičiuotos FID metrikos indikuojančios, kaip kokybiškai modeliai sugeba transformuoti nuotraukas lyginant su tikslo domenu.
+
+            Remiantis 4 lentelės duomenimis, matoma, jog geriausias FID nebūtinai reiškia geriausius rezultatus. Antroji apmokyta CycleGAN versija patobulino savo FID, tačiau, nors ir minimaliai, nukrito atpažįstamų automobilių skaičius (žr. \ref{tab:car_stats_final} lentelę), o CUT modeliui yra atvirkštinė situacija – antroji modelio versija padidino aptiktų automobilių skaičių, tačiau dėl to sumažėjo FID įvertis. Vienintelis modelis visiškai patobulėjęs nuo pagerinto GTA:VC duomenų rinkinio yra MSPC, jo atpažintų automobilių skaičius padidėjo ir FID įvertis sumažėjo. Pagal šiuos rezultatus matoma, jog iš trijų bandytų modelių, MSPC teikia geriausius rezultatus.
+            
             \begin{table}[H]
                 \footnotesize
                 \centering
@@ -481,7 +485,7 @@ edited_image.save("output.jpg")
                     Cut V1 & 181\\
                     Cut V2 & 186\\ 
                     CycleDiffusion & 190\\ %73
-                    ControlNet & 194\\ %96 
+                    ControlNet-Seg & 194\\ %96 
                     InstructPix2Pix & 206\\ %69
                     \hline
                     \end{tabular}
@@ -489,7 +493,7 @@ edited_image.save("output.jpg")
                 \label{tab:table example}
             \end{table}
     
-            Remiantis 4 lentelės duomenimis, matoma, jog geriausias FID nebūtinai reiškia geriausius rezultatus. Antroji apmokyta CycleGAN versija patobulino savo FID, tačiau, nors ir minimaliai, nukrito atpažįstamų automobilių skaičius (žr. \ref{tab:car_stats} lentelę), o CUT modeliui yra atvirkštinė situacija – antroji modelio versija padidino aptiktų automobilių skaičių, tačiau dėl to sumažėjo FID įvertis. Vienintelis modelis visiškai patobulėjęs nuo pagerinto GTA:VC duomenų rinkinio yra MSPC, jo atpažintų automobilių skaičius padidėjo ir FID įvertis sumažėjo. Pagal šiuos rezultatus matoma, jog iš trijų bandytų modelių, MSPC teikia geriausius rezultatus. MSPC Car modelis gerokai suprastino savo FID įverti, tačiau padvigubino savo aptiktų automobilių skaičių. Taip pat difuzijos modelių FID įverčiai teigtų, jog nuotraukos yra prasčiau transformuojamos, tačiau pažvelgus į pavyzdžius, matome, jog turinys geresnis iš detalių išlaikymo perspektyvos nors ir nuotraukų stilius iškraipomas.
+             MSPC Car modelis gerokai suprastino savo FID įverti, tačiau padvigubino savo aptiktų automobilių skaičių. Taip pat difuzijos modelių FID įverčiai teigtų, jog nuotraukos yra prasčiau transformuojamos, tačiau pažvelgus į pavyzdžius, matome, jog turinys geresnis iš detalių išlaikymo perspektyvos nors ir nuotraukų stilius iškraipomas.
 
         \subsubsection{Atpažintų automobilių kiekiai}
             5 lentelėje ryškiai matomas difuzijos modelių pranašumas. Jie daug geriau sugeba atpažįstamai išlaikyti automobilius. Naujo MSPC Car modelio atpažintų automobilių kiekis padidėjo daugiau nei dvigubai lyginant su paprastu pavieniu MSPC V2 modeliu.
@@ -501,7 +505,7 @@ edited_image.save("output.jpg")
                 {\begin{tabular}{|l|c|c|} \hline
                     Modelio pavadinimas & Atpažintų automobilių kiekis, vnt. & Atpažintų automobilių kiekis, \% \\
                     \hline
-                    ControlNet & 231 & 54,2 \%\\ %96 
+                    ControlNet-Seg & 231 & 54,2 \%\\ %96 
                     CycleDiffusion & 171 & 40,1 \% \\ %73
                     InstructPix2Pix & 121 & 28,4 \%\\ %69
                     MSPC Car & 44 & 10,3 \%\\ %33
@@ -514,7 +518,7 @@ edited_image.save("output.jpg")
                     \hline
                     \end{tabular}
                 }
-                \label{tab:table example}
+                \label{tab:car_stats_final}
             \end{table}
 
         \subsubsection{SSIM įverčiai}
@@ -539,7 +543,7 @@ edited_image.save("output.jpg")
                     CycleGAN V1 & 0,5772 \\
                     Cut V2 & 0,5091\\ 
                     CUT V1 & 0,4726 \\
-                    ControlNet & 0,2449 \\ %96 
+                    ControlNet-Seg & 0,2449 \\ %96 
                     \hline
                     \end{tabular}
                 }

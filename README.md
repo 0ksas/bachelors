@@ -1,6 +1,9 @@
 # Vilniaus universiteto Programų sistemų bakalauro darbo repozitorija
-Sukurti duomenų rinkiniai yra prieinami nuoroda: https://huggingface.co/datasets/0ksas/ViceCity
+Bachelors thesis paper written by Gytis Oksas analyses the task of transforming real-life traffic images into video game images and describes the attempt to create such a AI/ML based solution to transform real dashcam images to Grand Theft Auto: Vice City looking images.
 
-Modifikuota MSPC realizacija yra scripts/MSPC.rar faile.
+The custom created dataset used in the paper is available here: https://huggingface.co/datasets/0ksas/ViceCity
 
-Apmokyti modeliai testavimui ir naudojimiu yra prieinami trained_models direktorijoje.
+Trained models are available for use in the trained_models directory.
+
+The paper introduction is available in GytisOksasBDP2023.pdf
+The paper itself is available in GytisOksasBBD2023.pdf
